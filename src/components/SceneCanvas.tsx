@@ -1,11 +1,14 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DURATION, GreetingRenderer, STAGE_SETTLE, STILL_FRAME, containRect, type Rect, type RenderMode, type SceneData } from "../greeting/renderer.ts";
 import { loadGreetingFonts, prefersReducedMotion } from "../lib/fonts.ts";
 
 interface Props {
   mode: RenderMode;
   data: SceneData;
-  /** Play mode: CSS px reserved at the bottom for actions; the 9:16 frame fits above. */
+  /**
+   * Play mode: CSS px reserved at the bottom for actions; the 9:16 frame fits
+   * above. When it grows (the actions arrive), the frame eases into its new place.
+   */
   reserveBottom?: number;
   /** Stage mode: element whose box the kolam and name should occupy. */
   stageRef?: React.RefObject<HTMLElement | null>;
@@ -17,6 +20,19 @@ interface Props {
   onTime?: (t: number) => void;
   className?: string;
   label: string;
+}
+
+const FEATHER =
+  "linear-gradient(to right, transparent, #000 9%, #000 91%, transparent), linear-gradient(to bottom, #000 76%, transparent)";
+
+function clearEasing(canvas: HTMLCanvasElement, backdrop: HTMLCanvasElement | null) {
+  canvas.style.transition = "none";
+  canvas.style.transform = "";
+  for (const prefix of ["", "-webkit-"]) {
+    canvas.style.removeProperty(`${prefix}mask-image`);
+    canvas.style.removeProperty(`${prefix}mask-composite`);
+  }
+  if (backdrop) backdrop.style.opacity = "0";
 }
 
 /**
@@ -31,12 +47,18 @@ export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey =
   const readyRef = useRef(false);
   const lastTRef = useRef(0);
   const dataRef = useRef(data);
+  const backdropRef = useRef<HTMLCanvasElement>(null);
+  // The reserve the canvas is actually laid out for; trails `reserveBottom`
+  // by the length of the easing when the frame has to make room.
+  const [appliedReserve, setAppliedReserve] = useState(reserveBottom);
   onTimeRef.current = onTime;
   dataRef.current = data;
 
   // Size to the viewport, at up to 2× device pixels.
   useLayoutEffect(() => {
     const canvas = canvasRef.current!;
+    // A finished easing hands over to the real layout in the same frame.
+    clearEasing(canvas, backdropRef.current);
     const renderer = new GreetingRenderer(canvas, mode);
     rendererRef.current = renderer;
     let raf = 0;
@@ -50,7 +72,7 @@ export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey =
       const H = cssH * dpr;
       let region: Rect | undefined;
       if (mode === "play") {
-        const avail = { w: cssW, h: Math.max(240, cssH - reserveBottom) };
+        const avail = { w: cssW, h: Math.max(240, cssH - appliedReserve) };
         const r = containRect(avail.w, avail.h, 9 / 16);
         region = { x: r.x * dpr, y: r.y * dpr, w: r.w * dpr, h: r.h * dpr };
       } else if (stageRef?.current) {
@@ -78,7 +100,49 @@ export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey =
       ro?.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [mode, reserveBottom, stageRef]);
+  }, [mode, appliedReserve, stageRef]);
+
+  // Making room for the actions: scale and lift the frame onto where the new
+  // layout will put it, then lay it out for real. A blurred still of the floor
+  // fills the edges the shrinking canvas uncovers meanwhile.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || reserveBottom === appliedReserve) return;
+    const ease = mode === "play" && reserveBottom > appliedReserve && readyRef.current && !prefersReducedMotion();
+    if (!ease) {
+      setAppliedReserve(reserveBottom);
+      return;
+    }
+    const box = canvas.getBoundingClientRect();
+    const w = box.width || window.innerWidth;
+    const h = box.height || window.innerHeight;
+    const from = containRect(w, Math.max(240, h - appliedReserve), 9 / 16);
+    const to = containRect(w, Math.max(240, h - reserveBottom), 9 / 16);
+    const k = to.w / from.w;
+    const bd = backdropRef.current;
+    if (bd) {
+      bd.width = Math.max(2, Math.round(canvas.width / 8));
+      bd.height = Math.max(2, Math.round(canvas.height / 8));
+      bd.getContext("2d")?.drawImage(canvas, 0, 0, bd.width, bd.height);
+      bd.style.opacity = "1";
+    }
+    canvas.style.transformOrigin = "0 0";
+    canvas.style.transition = "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)";
+    // Feather the edges into the backdrop while the canvas is smaller than the screen.
+    for (const prefix of ["", "-webkit-"]) {
+      canvas.style.setProperty(`${prefix}mask-image`, FEATHER);
+      canvas.style.setProperty(`${prefix}mask-composite`, prefix ? "source-in" : "intersect");
+    }
+    const raf = requestAnimationFrame(() => {
+      canvas.style.transform = `translate(${to.x - k * from.x}px, ${to.y - k * from.y}px) scale(${k})`;
+    });
+    const done = setTimeout(() => setAppliedReserve(reserveBottom), 720);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(done);
+      clearEasing(canvas, bd);
+    };
+  }, [reserveBottom, appliedReserve, mode]);
 
   useEffect(() => {
     rendererRef.current?.setData(data);
@@ -169,5 +233,16 @@ export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey =
     mode === "play"
       ? "fixed inset-0 h-dvh w-full"
       : "absolute inset-0 h-full w-full";
-  return <canvas ref={canvasRef} role="img" aria-label={label} className={`pointer-events-none ${position} ${className}`} />;
+  return (
+    <>
+      {mode === "play" && (
+        <canvas
+          ref={backdropRef}
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 h-dvh w-full scale-110 opacity-0 [filter:blur(18px)]"
+        />
+      )}
+      <canvas ref={canvasRef} role="img" aria-label={label} className={`pointer-events-none ${position} ${className}`} />
+    </>
+  );
 }

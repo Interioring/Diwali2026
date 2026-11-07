@@ -65,6 +65,10 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
     track(fromRecipient ? "recipient_create_start" : "landing_view", { once: true });
   }, [fromRecipient]);
 
+  useEffect(() => {
+    document.title = "Diwali 2026 — Compile Your Light";
+  }, []);
+
   // Arriving from "Make one for someone else": the wish is kept, so go straight to the name.
   useEffect(() => {
     if ((history.state as { another?: boolean } | null)?.another) nameRef.current?.focus();
@@ -105,12 +109,48 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
     setDraft((d) => ({ ...d, ...patch }));
   };
 
-  const chooseStyle = (style: WishStyle) => {
-    setWishIndex(0);
-    update({ style, message: draft.edited ? draft.message : CURATED_WISHES[style][0] });
+  // A typed wish set aside by "Another wish" or a style change, so it can come back.
+  const [setAside, setSetAside] = useState<string | null>(null);
+  const keepTyped = () => {
+    if (draft.edited && draft.message.trim()) setSetAside(draft.message);
   };
 
+  const chooseStyle = (style: WishStyle) => {
+    keepTyped();
+    setWishIndex(0);
+    update({ style, message: CURATED_WISHES[style][0], edited: false });
+  };
+
+  const restoreWish = () => {
+    if (setAside === null) return;
+    update({ message: setAside, edited: true });
+    setSetAside(null);
+  };
+
+  // Arrow keys move through the styles, as in any radio group.
+  const onStyleKey = (e: React.KeyboardEvent, style: WishStyle) => {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const i = WISH_STYLES.indexOf(style);
+    const next = WISH_STYLES[(i + step + WISH_STYLES.length) % WISH_STYLES.length];
+    chooseStyle(next);
+    requestAnimationFrame(() => document.getElementById(`style-${next}`)?.focus());
+  };
+
+  // The step being worked on carries the gold numeral; before anything is
+  // focused, that's the one required step while it's empty.
+  const [focusStep, setFocusStep] = useState<number | null>(null);
+  const stepProps = (n: number) => ({
+    onFocus: () => setFocusStep(n),
+    onBlur: (e: React.FocusEvent) => {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusStep(null);
+    },
+  });
+  const stepActive = (n: number) => focusStep === n || (n === 1 && focusStep === null && !draft.name);
+
   const anotherWish = () => {
+    keepTyped();
     const wishes = CURATED_WISHES[draft.style];
     const next = (wishIndex + 1) % wishes.length;
     setWishIndex(next);
@@ -177,9 +217,9 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
         <div ref={stageRef} aria-hidden="true" className="h-[min(23rem,46svh)] w-full sm:h-[min(26rem,48svh)]" />
 
         <form onSubmit={submit} noValidate className="flex flex-col gap-9">
-          <section aria-labelledby="step-name">
+          <section aria-labelledby="step-name" {...stepProps(1)}>
             <div className="flex items-center gap-3">
-              <StepNumber n={1} active={!draft.name} />
+              <StepNumber n={1} active={stepActive(1)} />
               <label id="step-name" htmlFor="recipient" className="text-[1.08rem] font-semibold text-ink">
                 Their name
               </label>
@@ -187,6 +227,7 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
             <div className={`powder-edge mt-2 pb-2 ${nameError ? "is-invalid" : ""}`}>
               <input
                 id="recipient"
+                aria-required="true"
                 ref={nameRef}
                 value={draft.name}
                 maxLength={LIMITS.nameMax}
@@ -211,9 +252,9 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
             </div>
           </section>
 
-          <section aria-labelledby="step-wish">
+          <section aria-labelledby="step-wish" {...stepProps(2)}>
             <div className="flex items-center gap-3">
-              <StepNumber n={2} />
+              <StepNumber n={2} active={stepActive(2)} />
               <label id="step-wish" htmlFor="wish" className="text-[1.08rem] font-semibold text-ink">
                 Your wish
               </label>
@@ -225,12 +266,15 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
                 return (
                   <button
                     key={style}
+                    id={`style-${style}`}
                     type="button"
                     role="radio"
                     aria-checked={on}
+                    tabIndex={on ? 0 : -1}
                     title={STYLE_LABELS[style]}
                     onClick={() => chooseStyle(style)}
-                    className={`min-h-10 shrink-0 rounded-full px-4 text-[0.95rem] font-medium transition-colors ${
+                    onKeyDown={(e) => onStyleKey(e, style)}
+                    className={`min-h-11 shrink-0 rounded-full px-4 text-[0.95rem] font-medium transition-colors ${
                       on ? "bg-powder text-oxide-900" : "powder-ring text-ink-dim hover:text-powder"
                     }`}
                   >
@@ -252,7 +296,13 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
               />
             </div>
             <div className="mt-2 flex items-start justify-between gap-3 text-[0.9rem] text-ink-dim">
-              <span>Tap the wish to make it your own.</span>
+              {setAside !== null && !draft.edited ? (
+                <button type="button" onClick={restoreWish} className="-my-1 py-1 text-left font-medium text-ink underline underline-offset-4 hover:text-powder">
+                  Bring back the wish you wrote
+                </button>
+              ) : (
+                <span>Edit the wish to make it your own.</span>
+              )}
               <span className="shrink-0 tabular-nums">{msgLeft <= 40 ? `${msgLeft} left` : ""}</span>
             </div>
 
@@ -274,9 +324,9 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
             </div>
           </section>
 
-          <section aria-labelledby="step-from">
+          <section aria-labelledby="step-from" {...stepProps(3)}>
             <div className="flex items-center gap-3">
-              <StepNumber n={3} />
+              <StepNumber n={3} active={stepActive(3)} />
               <label id="step-from" htmlFor="sender" className="text-[1.08rem] font-semibold text-ink">
                 From <span className="font-normal text-ink-faint">(optional)</span>
               </label>

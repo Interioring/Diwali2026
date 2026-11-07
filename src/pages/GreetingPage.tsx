@@ -40,6 +40,8 @@ const ACTIONS_HEIGHT = { sender: 238, recipient: 196 };
 const SHOW_ACTIONS_AT = 11.8;
 // "Skip to send" lands just before the sign-off, so the gift still settles into place.
 const SKIP_TO = 11.4;
+// While the film plays it gets the whole height; repeats keep a strip for "Skip to send".
+const SKIP_ROOM = 76;
 
 export function GreetingPage({ id }: { id: string }) {
   const navState = history.state as { greeting?: Greeting; fresh?: boolean; skippable?: boolean } | null;
@@ -69,7 +71,7 @@ export function GreetingPage({ id }: { id: string }) {
       .then((greeting) => setLoad({ kind: "ready", greeting }))
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 404)
-          setLoad({ kind: "missing", message: "This greeting has gone out. Greetings stay lit for 45 days, or until someone reports them." });
+          setLoad({ kind: "missing", message: "Greetings stay lit for 45 days, or until someone reports them." });
         else setLoad({ kind: "error", message: err instanceof Error ? err.message : "We couldn't open this greeting." });
       });
   }, [id]);
@@ -82,6 +84,10 @@ export function GreetingPage({ id }: { id: string }) {
   useEffect(() => {
     if (load.kind === "ready" && !mine) track("recipient_view", { once: true });
   }, [load.kind, mine]);
+
+  useEffect(() => {
+    if (load.kind === "ready") document.title = `A Diwali greeting for ${load.greeting.recipientName} · Diwali 2026`;
+  }, [load]);
 
   useEffect(() => {
     void detectExport().then(setExportMethod);
@@ -103,8 +109,8 @@ export function GreetingPage({ id }: { id: string }) {
     if (music === "on") void musicRef.current?.play(SKIP_TO);
   };
 
+  // Replaying (or turning the music on) keeps the actions in reach once they've appeared.
   const restart = (withMusic: boolean) => {
-    setShowActions(false);
     setPlayKey((k) => k + 1);
     if (withMusic) void musicRef.current?.play(0);
   };
@@ -189,12 +195,12 @@ export function GreetingPage({ id }: { id: string }) {
     }
     track("download_video");
     downloadBlob(blob, file.name);
-    say("Video saved to your downloads");
+    say(isInAppBrowser() ? "If nothing downloads, open this page in Chrome or Safari." : "Downloading your video. Check your Downloads.");
   };
 
   const copy = async () => {
     track("share_copy");
-    say((await copyText(url)) ? "Link copied" : "Couldn't copy. Long-press the address bar instead.");
+    say((await copyText(url)) ? "Link copied" : "Couldn't copy the link. Use WhatsApp or Share instead.");
   };
 
   const share = async () => {
@@ -212,6 +218,24 @@ export function GreetingPage({ id }: { id: string }) {
         seed: greeting.seed,
         edited: true,
       },
+    });
+  };
+
+  const makeOwn = (draft?: object) => {
+    track("recipient_create_start");
+    navigate("/", { fromRecipient: true, ...(draft ? { draft } : {}) });
+  };
+
+  // From Amma's greeting from Srini: one back to Srini, signed by Amma.
+  const sendBack = () => {
+    track("send_back");
+    makeOwn({
+      name: greeting.senderName ?? "",
+      sender: greeting.recipientName,
+      message: CURATED_WISHES.warm[0],
+      style: "warm",
+      seed: randomSeed(),
+      edited: false,
     });
   };
 
@@ -233,10 +257,14 @@ export function GreetingPage({ id }: { id: string }) {
 
   return (
     <div className="relative h-dvh overflow-hidden bg-[#200b07]">
+      <h1 className="sr-only">A Diwali greeting for {greeting.recipientName}</h1>
+      <p aria-live="polite" className="sr-only">
+        {showActions ? (mine ? "Your greeting is ready to send." : "The greeting has finished. You can make one of your own.") : ""}
+      </p>
       <SceneCanvas
         mode="play"
         data={sceneData}
-        reserveBottom={mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient}
+        reserveBottom={showActions ? (mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient) : skippable ? SKIP_ROOM : 0}
         playKey={playKey}
         skipKey={skipKey}
         skipTo={SKIP_TO}
@@ -247,7 +275,6 @@ export function GreetingPage({ id }: { id: string }) {
       <button
         type="button"
         onClick={toggleMusic}
-        aria-pressed={music === "on"}
         disabled={music === "loading"}
         className={`absolute left-[max(0.75rem,env(safe-area-inset-left))] top-[max(0.75rem,env(safe-area-inset-top))] z-10 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 text-[0.9rem] font-medium transition-colors ${
           music === "on" ? "text-ink-dim hover:text-powder" : "powder-ring bg-oxide-900/40 text-powder hover:bg-oxide-700/70"
@@ -294,10 +321,10 @@ export function GreetingPage({ id }: { id: string }) {
             <div className="flex flex-col gap-2">
               <Button variant="flame" onClick={() => saveVideo(video.file, video.blob)}>
                 <Download className="size-5" strokeWidth={2} aria-hidden="true" />
-                Download video
+                Save video
               </Button>
-              <p className="text-center text-[0.86rem] leading-snug text-ink-dim text-pretty">
-                {video.withMusic ? "Music included. Share it from your gallery." : "Saved without music. Share it from your gallery."}
+              <p className="text-center text-[0.9rem] leading-snug text-ink-dim text-pretty">
+                {video.withMusic ? "Music included. Share it from your gallery." : "Made without music. Share from your gallery."}
               </p>
             </div>
           ) : mine ? (
@@ -312,14 +339,8 @@ export function GreetingPage({ id }: { id: string }) {
               Send on WhatsApp
             </LinkButton>
           ) : (
-            <Button
-              variant="flame"
-              onClick={() => {
-                track("recipient_create_start");
-                navigate("/", { fromRecipient: true });
-              }}
-            >
-              Make one for someone
+            <Button variant="flame" onClick={greeting.senderName ? sendBack : () => makeOwn()} className="min-w-0">
+              <span className="truncate">{greeting.senderName ? `Send one back to ${greeting.senderName}` : "Make one for someone"}</span>
             </Button>
           )}
 
@@ -339,7 +360,7 @@ export function GreetingPage({ id }: { id: string }) {
                 <Download className="size-5" strokeWidth={1.8} aria-hidden="true" />
               </IconAction>
             )}
-            {!mine || video.kind === "ready" ? (
+            {!mine || video.kind === "ready" || video.kind === "working" ? (
               <IconAction label="WhatsApp" href={whatsappHref(url)} onClick={() => track("share_whatsapp")}>
                 <MessageCircle className="size-5" strokeWidth={1.8} aria-hidden="true" />
               </IconAction>
@@ -368,6 +389,16 @@ export function GreetingPage({ id }: { id: string }) {
 
           {!mine && video.kind !== "working" && video.kind !== "ready" && (
             <div className="flex min-h-11 items-center justify-end gap-1 text-[0.8rem]">
+              {greeting.senderName && !confirmReport && (
+                <button
+                  type="button"
+                  onClick={() => makeOwn()}
+                  className="mr-auto inline-flex min-h-11 items-center gap-1 text-[0.9rem] font-medium text-ink-dim underline-offset-4 hover:text-powder hover:underline"
+                >
+                  <UserPlus className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                  Make one for someone else
+                </button>
+              )}
               {confirmReport && !reported ? (
                 // Hiding is immediate and for everyone, so it takes a second, deliberate tap.
                 <>
@@ -468,7 +499,7 @@ function ExportProgress({ progress, onCancel }: { progress: number; onCancel: ()
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="flex justify-between text-[0.84rem] text-ink-faint">
+      <div className="flex justify-between gap-3 text-[0.9rem] text-ink-faint">
         <span>Keep this screen open. It takes a few seconds.</span>
         <button type="button" onClick={onCancel} className="min-h-8 text-ink-dim underline underline-offset-4 hover:text-powder">
           Cancel
@@ -484,7 +515,7 @@ function Unavailable({ state, onRetry }: { state: LoadState; onRetry: () => void
       <SceneCanvas mode="stage" data={{ recipientName: "", message: "", seed: 2026 }} label="A kolam on a dark threshold" className="opacity-60" />
       <main className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-end gap-5 px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
         {state.kind === "loading" ? (
-          <p role="status" className="font-display text-[1.6rem] text-ink">
+          <p role="status" className="font-display text-[2rem] text-ink">
             Opening your greeting…
           </p>
         ) : (

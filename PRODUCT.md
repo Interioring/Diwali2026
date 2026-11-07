@@ -36,7 +36,7 @@ The greeting is generated, not picked from a template. Each one is a procedural 
 - The full functional spec is in `docs/PRD.md`, with acceptance criteria in §9.
 - **Release priority for the 8 Nov deadline** (confirmed): the greeting animation, the share link, and WhatsApp and copy-link sharing come first, then video export as fast as possible. P1 items wait.
 - No AI and no API keys: wishes come from a curated list only. AI-written wishes were removed at the user's request on 7 Nov 2026.
-- The exported video's closing frame invites the viewer to make their own at diwali2026.interioring.com (the user's request, 7 Nov 2026), because the video carries no link. On the page, the button does that job (the user's choice after the 7 Nov review).
+- The exported video markets the site (the user's request, 7 Nov 2026), because it carries no link. The footer shows diwali2026.interioring.com through the film, and the closing says "Make a video like this for your family, friends or customers / Free at diwali2026.interioring.com". On the page, the button does that job (the user's choice after the 7 Nov review).
 - The end frame is gift-first: the name, the wish and "With love, …" stay to the end, with the brand lines smaller below (the user's choice after the 7 Nov review).
 - Video export must detect codec support at runtime. Never label WebM as MP4. If export isn't possible, fall back to the share link.
 - No accounts. The only sender data is an optional "From" name the sender chooses to sign with ("With love, …"), added at the user's request on 7 Nov 2026. Never collect email, phone or contacts. Public IDs must be unguessable, with short retention (45 days) and a way to report or remove a greeting.

@@ -3,7 +3,7 @@ export function greetingUrl(id: string): string {
 }
 
 export function shareMessage(url: string): string {
-  return `I made a little Diwali surprise for you! ✨\nOpen your personalized greeting: ${url}\nHappy Diwali!`;
+  return `I made a little Diwali surprise for you! ✨\nOpen your personalised greeting: ${url}\nHappy Diwali!`;
 }
 
 export function whatsappHref(url: string): string {

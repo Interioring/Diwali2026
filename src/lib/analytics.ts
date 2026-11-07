@@ -9,6 +9,7 @@ export type EventName =
   | "recipient_view"
   | "recipient_create_start"
   | "create_another"
+  | "send_back"
   | "export_started"
   | "export_completed"
   | "export_failed"

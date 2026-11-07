@@ -10,7 +10,7 @@ colors:
   powder: "#f4efe4"
   ink: "#f3ece0"
   ink-dim: "#d9c8b6"
-  ink-faint: "#a8907c"
+  ink-faint: "#b9a28e"
   gold: "#ffc95c"
   gold-deep: "#f0a93a"
   rani: "#e2457f"
@@ -44,11 +44,37 @@ typography:
     fontSize: "1.04rem"
     fontWeight: 400
     lineHeight: 1.375
+  display-sm:
+    fontFamily: "Eczar, Georgia, serif"
+    fontSize: "3.1rem"
+    fontWeight: 700
+    lineHeight: 0.98
+    letterSpacing: "-0.02em"
+  wish:
+    fontFamily: "Anek Latin, system-ui, sans-serif"
+    fontSize: "1.15rem"
+    fontWeight: 400
+    lineHeight: 1.5
   label:
     fontFamily: "Anek Latin, system-ui, sans-serif"
     fontSize: "0.9rem"
     fontWeight: 400
     lineHeight: 1.375
+  maker:
+    fontFamily: "Anek Latin, system-ui, sans-serif"
+    fontSize: "0.82rem"
+    fontWeight: 400
+    lineHeight: 1.375
+  caption:
+    fontFamily: "Anek Latin, system-ui, sans-serif"
+    fontSize: "0.8rem"
+    fontWeight: 400
+    lineHeight: 1.375
+  tile:
+    fontFamily: "Anek Latin, system-ui, sans-serif"
+    fontSize: "0.76rem"
+    fontWeight: 500
+    lineHeight: 1.25
   numeral:
     fontFamily: "Eczar, Georgia, serif"
     fontSize: "0.95rem"
@@ -94,7 +120,7 @@ components:
     textColor: "{colors.ink-dim}"
     rounded: "{rounded.full}"
     padding: "0 16px"
-    height: "40px"
+    height: "44px"
   chip-style-selected:
     backgroundColor: "{colors.powder}"
     textColor: "{colors.oxide-900}"
@@ -192,7 +218,7 @@ A night palette of red-oxide grounds and warm off-white powder, with a single fl
 
 ## Layout
 
-The floor is full-bleed and fixed behind the content. Content sits in one centred column (max 30rem on mobile, 34rem at md) with a 24px side inset (20px on the greeting's share sheet) and safe-area-aware top and bottom padding. On create, the header is followed by a reserved stage box (min(23rem, 46svh), or min(26rem, 48svh) at sm) where the canvas draws the kolam and the typed name. Below it are three numbered steps, 36px apart. The flame action is pinned in the thumb zone on mobile, over a fade to the night floor so the form dims out beneath it, and returns to the flow at md. The wish field grows with its text, so its powder edge sits under the last line. Until a name is typed the stage shows only the kolam (no ghost name). Focus rings follow each control's own shape (pills stay pills), and the scrolling chip row keeps room for them. The greeting page is a single 100dvh stage: music and replay controls sit in the top corners, and the share sheet rises in from the bottom once the greeting closes. Canvas composition is always in the 1080×1920 logical frame, scaled to fit, so the preview and the 9:16 video share a layout.
+The floor is full-bleed and fixed behind the content. Content sits in one centred column (max 30rem on mobile, 34rem at md) with a 24px side inset (20px on the greeting's share sheet) and safe-area-aware top and bottom padding. On create, the header is followed by a reserved stage box (min(23rem, 46svh), or min(26rem, 48svh) at sm) where the canvas draws the kolam and the typed name. Below it are three numbered steps, 36px apart. The flame action is pinned in the thumb zone on mobile, over a fade to the night floor so the form dims out beneath it, and returns to the flow at md. The wish field grows with its text, so its powder edge sits under the last line. Until a name is typed the stage shows only the kolam (no ghost name). Focus rings follow each control's own shape (pills stay pills), and the scrolling chip row keeps room for them. The greeting page is a single 100dvh stage: music and replay controls sit in the top corners. The film plays at full height (repeat greetings keep a 76px strip for "Skip to send"); when the share sheet rises in, the frame eases up and smaller to make room (a 700ms CSS transform with feathered edges over a blurred still of the floor), then is re-laid out at that size. Replay and "Play with music" keep the sheet in place. Canvas composition is always in the 1080×1920 logical frame, scaled to fit, so the preview and the 9:16 video share a layout.
 
 ## Elevation & Depth
 
@@ -220,7 +246,7 @@ Controls are pill-shaped (fully rounded). Step numerals are 28px powder circles.
 - **Focus:** a 2px gold outline at a 3px offset, everywhere.
 
 ### Chips
-- **Style:** wish-style radio pills, 40px, a powder ring with ink-dim text, scrolling horizontally past the gutter.
+- **Style:** wish-style radio pills, 44px, a powder ring with ink-dim text, scrolling horizontally past the gutter. One Tab stop; arrow keys move the selection. A style change or "Another wish" sets a typed wish aside and offers "Bring back the wish you wrote" in the helper line.
 - **State:** selected is a solid powder fill with oxide-900 text, never gold.
 
 ### Inputs / Fields
@@ -232,10 +258,10 @@ Controls are pill-shaped (fully rounded). Step numerals are 28px powder circles.
 There is no navigation bar. The greeting page carries two floating corner controls. "Play with music" is a powder-ring pill and becomes the quiet "Music off" once playing. "Replay" is quiet.
 
 ### Step Numbers
-Eczar numerals in 28px powder rings. The current step turns gold. They teach the three-step order.
+Eczar numerals in 28px powder rings. The step being worked on (focus within it) turns gold; before anything is focused, step 1 is gold while the name is empty. They teach the three-step order.
 
 ### Share Actions
-A 4-column grid of 64px tiles: a 20px Lucide line icon (stroke 1.8) over an Anek 500 label, in ink-dim at rest and with an oxide-700 wash on hover. The labels are exact: "Download video", "WhatsApp", "Copy link", "Share", "Edit". Report asks inline, "Hide this greeting for everyone?" with Hide and Keep, before it acts, and steps aside while a video is being made or saved. The share sheet is `inert` until it appears. On greetings made with "Make one for someone else", a powder "Skip to send" button sits where the sheet will appear and jumps the film to 11.4 s; the first greeting always plays in full. Under the grid, the sender gets a powder button, "Make one for someone else", which opens the creator with the same wish and "From" name, an empty name field (focused) and a new kolam seed, so one person can send to many quickly.
+A 4-column grid of 64px tiles: a 20px Lucide line icon (stroke 1.8) over an Anek 500 label, in ink-dim at rest and with an oxide-700 wash on hover. The labels are exact: "Download video", "WhatsApp", "Copy link", "Share", "Edit". WhatsApp stays in the grid while a video is being made. A recipient whose greeting has a sender gets "Send one back to <sender>" as the flame action (prefilled: their sender as the name, themselves as "From"), with a quiet "Make one for someone else" beside Report. Report asks inline, "Hide this greeting for everyone?" with Hide and Keep, before it acts, and steps aside while a video is being made or saved. The share sheet is `inert` until it appears. On greetings made with "Make one for someone else", a powder "Skip to send" button sits where the sheet will appear and jumps the film to 11.4 s; the first greeting always plays in full. Under the grid, the sender gets a powder button, "Make one for someone else", which opens the creator with the same wish and "From" name, an empty name field (focused) and a new kolam seed, so one person can send to many quickly.
 
 ### Export Progress
 A powder dot line (1.4px dots on a 10px pitch at 28%) overdrawn by gold dots as the video renders, with a gold tabular percentage, "Drawing your video", and a quiet Cancel.
@@ -244,7 +270,7 @@ A powder dot line (1.4px dots on a 10px pitch at 28%) overdrawn by gold dots as 
 The official Interioring house mark (the unaltered path from interioring.com/favicon.svg, filled with the current colour), followed by "Made with love by **Interioring**", with the wordmark set at 760 weight and 112% width. It is discreet: ink-faint at 0.82rem in the DOM, and 60% opacity at 27px at the foot of the canvas frame until the sign-off takes over. The closing lockup sets the mark with the wordmark "Interioring" in powder.
 
 ### Closing Invitation (video only)
-In the exported video, an invitation sits under the lockup: "Send a personal Diwali greeting to your friends at" in Anek 400 at 28px, Dusk Ink, over "diwali2026.interioring.com" in Anek 650 at 34px, Rice Powder (12.45–13.55). A video on someone's Status carries no link, so the address is spelled out. The page leaves it out: its own "Make one for someone" button does that job.
+In the exported video, an invitation sits under the lockup: "Make a video like this for your family, friends or customers" in Anek 400 at 28px, Dusk Ink, over "Free at diwali2026.interioring.com" in Anek 650 at 34px, Rice Powder (12.3–13.4). Through the film, the video's footer maker's mark also carries the address: "Made with love by Interioring · diwali2026.interioring.com". A video on someone's Status carries no link, so the address is spelled out. The page leaves it out: its own "Make one for someone" button does that job.
 
 ### Greeting Canvas (signature)
 A timeline in seconds. An ember strikes the first wick (0.15–0.95). The dots appear as the light reaches them (1.0–2.2). The powder line draws (1.9–6.3). Petals bloom with a colour ripple (5.5–7.1). Light runs along the kolam to each side lamp (6.55–7.6). A phuljhadi writes the name (7.7–9.1), then the wish arrives (8.9–10.0) and the optional "With love, <name>" (9.9–10.6). The closing is gift-first (11.7–12.8): the name, the wish and "With love" stay and ease together into their resting places, so nothing crosses anything else. Then "Happy Diwali 2026" and "May your lives and homes shine brighter." fade in below (from 12.15), then the Interioring lockup (from 12.3), and in the video the invitation (from 12.45). Total length is 14s. Reduced motion shows the still frame at 10.6s. An original synthesised score follows the same timeline: a tanpura drone, a bell on each ignition, a raag Bhupali bansuri phrase, santoor at the petals, sparkler crackle and a closing chord. It is opt-in on the page through "Play with music" and baked into the MP4.
@@ -257,7 +283,7 @@ A timeline in seconds. An ember strikes the first wick (0.15–0.95). The dots a
 - **Do** draw field edges and progress as pulli-dot powder lines, and controls as powder rings.
 - **Do** use the maker's mark copy exactly as "Made with love by Interioring", linked to https://www.interioring.com and kept discreet.
 - **Do** use the official Interioring mark path as shipped in `src/greeting/brand.ts`, filled with one colour.
-- **Do** label the export action "Download video" everywhere.
+- **Do** label the export action "Download video", and its second step, once the video is made, "Save video". Never "Download video for Status".
 - **Do** treat the sender name as optional and render it as "With love, <name>", with a Dusk Ink prefix and the name in Rice Powder.
 - **Do** keep music opt-in through "Play with music", and bake the same synthesised score into the MP4.
 - **Do** report failures as short margin notes in Alert Coral with a working fallback (the share link).

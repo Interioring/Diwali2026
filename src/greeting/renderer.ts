@@ -49,7 +49,8 @@ const FONT_UI = '"Anek Latin", Eczar, system-ui, sans-serif';
 
 /** The closing invitation. A video on someone's Status carries no link, so the address is spelled out. */
 export const SITE_HOST = "diwali2026.interioring.com";
-const INVITE_LINE = "Send a personal Diwali greeting to your friends at";
+const INVITE_LINE = "Make a video like this for your family, friends or customers";
+const INVITE_SITE = `Free at ${SITE_HOST}`;
 
 // Timeline (seconds)
 const T = {
@@ -955,7 +956,8 @@ export class GreetingRenderer {
     if (mm > 0) {
       c.globalAlpha = mm * 0.6;
       c.font = `500 ${27 * s}px ${FONT_UI}`;
-      const label = "Made with love by Interioring";
+      // In the video the footer also carries the address, so it's readable for most of the film.
+      const label = this.showInvite ? `Made with love by Interioring · ${SITE_HOST}` : "Made with love by Interioring";
       const tw = c.measureText(label).width;
       const iconW = 34 * s;
       const gap = 10 * s;
@@ -1001,7 +1003,7 @@ export class GreetingRenderer {
 
       // In the video only: how to send one of your own. A video on someone's
       // Status carries no link; on the page, the button below does this job.
-      const ip = this.showInvite ? easeOut(seg(tb, T.closing[0] + 0.75, T.closing[1] + 0.75)) : 0;
+      const ip = this.showInvite ? easeOut(seg(tb, T.closing[0] + 0.6, T.closing[1] + 0.6)) : 0;
       if (ip > 0) {
         const y = L.inviteY + (1 - ip) * 10;
         shadow(true);
@@ -1011,7 +1013,7 @@ export class GreetingRenderer {
         c.fillText(INVITE_LINE, this.X(540), this.Y(y));
         c.font = `650 ${34 * s}px ${FONT_UI}`;
         c.fillStyle = COLORS.powder;
-        c.fillText(SITE_HOST, this.X(540), this.Y(y + 44));
+        c.fillText(INVITE_SITE, this.X(540), this.Y(y + 44));
       }
     }
     c.globalAlpha = 1;

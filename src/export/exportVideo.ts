@@ -13,6 +13,13 @@ import { MUSIC_SAMPLE_RATE, renderMusic } from "../audio/music.ts";
  */
 
 const FPS = 30;
+// Sized for WhatsApp Status and Instagram Stories, which re-compress uploads
+// to roughly 1–4 Mbps anyway: ~4.4 MB for the 14 s film at 1080p (it was 9.3 MB
+// at 5.5 Mbps with no visible gain once shared). Fewer keyframes spend the same
+// budget on picture instead.
+const BITRATE_1080 = 2_500_000;
+const BITRATE_720 = 1_500_000;
+const KEYFRAME_EVERY_S = 5;
 
 export type ExportMethod = "webcodecs" | "mediarecorder";
 
@@ -35,7 +42,7 @@ async function pickEncoder(): Promise<EncoderChoice | null> {
         codec: `avc1.${profile}00${level}`,
         width,
         height,
-        bitrate: width >= 1080 ? 5_500_000 : 3_500_000,
+        bitrate: width >= 1080 ? BITRATE_1080 : BITRATE_720,
         framerate: FPS,
         avc: { format: "avc" },
       };
@@ -138,7 +145,7 @@ async function encodeWithWebCodecs(
       if (failure) throw failure;
       renderer.draw(i / FPS);
       const frame = new VideoFrame(canvas, { timestamp: Math.round(i * frameUs), duration: Math.round(frameUs) });
-      encoder.encode(frame, { keyFrame: i % (FPS * 2) === 0 });
+      encoder.encode(frame, { keyFrame: i % (FPS * KEYFRAME_EVERY_S) === 0 });
       frame.close();
       while (encoder.encodeQueueSize > 6) await new Promise((r) => setTimeout(r, 4));
       if (i % 4 === 0) {
@@ -203,7 +210,7 @@ async function recordWithMediaRecorder(
   renderer.setData(data);
   renderer.draw(0);
   const stream = canvas.captureStream(FPS);
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: BITRATE_720 });
   const chunks: Blob[] = [];
   recorder.ondataavailable = (e) => {
     if (e.data.size) chunks.push(e.data);
