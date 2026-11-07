@@ -1,12 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-import {
-  ID_PATTERN,
-  isWishStyle,
-  validateGreetingInput,
-  type Greeting,
-  type WishStyle,
-} from "../shared/greeting.ts";
-import { CURATED_WISHES } from "../shared/wishes.ts";
+import { ID_PATTERN, isWishStyle, validateGreetingInput, type Greeting } from "../shared/greeting.ts";
 
 interface RateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -15,22 +7,18 @@ interface RateLimiter {
 export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
-  ANTHROPIC_API_KEY?: string;
   RL_GREETINGS?: RateLimiter;
-  RL_WISHES?: RateLimiter;
 }
 
 const RETENTION_MS = 45 * 24 * 60 * 60 * 1000; // greetings live 45 days
-const WISH_CACHE_MS = 6 * 60 * 60 * 1000; // reuse generated wishes for 6 hours
-const WISH_MODEL = "claude-opus-5-5";
 
 const EVENTS = new Set([
   "landing_view",
   "create_start",
   "greeting_created",
-  "wish_ai_requested",
   "recipient_view",
   "recipient_create_start",
+  "create_another",
   "export_started",
   "export_completed",
   "export_failed",
@@ -135,102 +123,6 @@ async function reportGreeting(env: Env, id: string): Promise<Response> {
   return json({ ok: true });
 }
 
-const WISH_SCHEMA = {
-  type: "object",
-  properties: {
-    wishes: { type: "array", items: { type: "string" } },
-  },
-  required: ["wishes"],
-  additionalProperties: false,
-} as const;
-
-const STYLE_BRIEF: Record<WishStyle, string> = {
-  warm: "warm and traditional in feeling",
-  cheerful: "short and cheerful, under 14 words each",
-  family: "about family, home, and togetherness",
-  playful: "light and playful with one gentle software or tech wink (compile, render, ship), still clearly festive",
-};
-
-function cleanWish(text: string): string | null {
-  const t = text.replace(/\s+/g, " ").replace(/^["'\s]+|["'\s]+$/g, "").trim();
-  if (t.length < 12 || t.length > 160) return null;
-  if (/https?:|www\.|@|#/.test(t)) return null;
-  return t;
-}
-
-async function generateWishes(env: Env, style: WishStyle): Promise<string[] | null> {
-  if (!env.ANTHROPIC_API_KEY) return null;
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, timeout: 20_000, maxRetries: 1 });
-  try {
-    const response = await client.beta.messages.create({
-      model: WISH_MODEL,
-      max_tokens: 2000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: {
-        effort: "low",
-        format: { type: "json_schema", schema: WISH_SCHEMA },
-      },
-      system:
-        "You write short Diwali greeting wishes for an animated greeting video. Each wish is one or two sentences, at most 150 characters, in plain English. Do not include names, emoji, hashtags, or quotation marks. Keep wishes inclusive: never assume the reader's religion, deity, caste, region, or politics; talk about light, home, warmth, sweets, togetherness, and new beginnings.",
-      messages: [
-        {
-          role: "user",
-          content: `Write 6 distinct wishes that are ${STYLE_BRIEF[style]}. Return them in the wishes array.`,
-        },
-      ],
-    });
-    if (response.stop_reason === "refusal") return null;
-    const text = response.content.find((b) => b.type === "text");
-    if (!text || text.type !== "text") return null;
-    const parsed = JSON.parse(text.text) as { wishes?: unknown };
-    if (!Array.isArray(parsed.wishes)) return null;
-    const wishes = parsed.wishes
-      .filter((w): w is string => typeof w === "string")
-      .map(cleanWish)
-      .filter((w): w is string => w !== null);
-    return wishes.length >= 2 ? wishes.slice(0, 6) : null;
-  } catch (err) {
-    if (err instanceof Anthropic.APIError) console.warn("wish generation failed", err.status);
-    else console.warn("wish generation failed");
-    return null;
-  }
-}
-
-async function wishes(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  let style: WishStyle = "warm";
-  try {
-    const body = (await readJson(request, 512)) as { style?: unknown };
-    if (isWishStyle(body.style)) style = body.style;
-  } catch {
-    // default style
-  }
-  const cached = await env.DB.prepare("SELECT wishes, created_at FROM wish_cache WHERE style = ?")
-    .bind(style)
-    .first<{ wishes: string; created_at: number }>();
-  const fresh = cached && Date.now() - cached.created_at < WISH_CACHE_MS;
-  if (cached && fresh) return json({ source: "ai", style, wishes: JSON.parse(cached.wishes) as string[] });
-
-  if (!(await allowed(env.RL_WISHES, request))) {
-    const list = cached ? (JSON.parse(cached.wishes) as string[]) : CURATED_WISHES[style];
-    return json({ source: cached ? "ai" : "curated", style, wishes: list });
-  }
-
-  const generated = await generateWishes(env, style);
-  if (generated) {
-    ctx.waitUntil(
-      env.DB.prepare(
-        "INSERT INTO wish_cache (style, wishes, created_at) VALUES (?, ?, ?) ON CONFLICT(style) DO UPDATE SET wishes = excluded.wishes, created_at = excluded.created_at",
-      )
-        .bind(style, JSON.stringify(generated), Date.now())
-        .run(),
-    );
-    return json({ source: "ai", style, wishes: generated });
-  }
-  if (cached) return json({ source: "ai", style, wishes: JSON.parse(cached.wishes) as string[] });
-  return json({ source: "curated", style, wishes: CURATED_WISHES[style] });
-}
-
 async function trackEvent(request: Request, env: Env): Promise<Response> {
   try {
     const body = (await readJson(request, 256)) as { name?: unknown };
@@ -296,13 +188,13 @@ async function greetingPage(request: Request, env: Env, id: string): Promise<Res
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
     const method = request.method;
 
     try {
-      if (pathname === "/api/health") return json({ ok: true, ai: Boolean(env.ANTHROPIC_API_KEY) });
+      if (pathname === "/api/health") return json({ ok: true });
       if (pathname === "/api/greetings" && method === "POST") return await createGreeting(request, env);
       const match = pathname.match(/^\/api\/greetings\/([^/]+)(\/report)?$/);
       if (match) {
@@ -314,7 +206,6 @@ export default {
         }
         return error(405, "Method not allowed.");
       }
-      if (pathname === "/api/wishes/generate" && method === "POST") return await wishes(request, env, ctx);
       if (pathname === "/api/events" && method === "POST") return await trackEvent(request, env);
       if (pathname.startsWith("/api/")) return error(404, "Not found.");
 

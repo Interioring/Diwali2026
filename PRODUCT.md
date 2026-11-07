@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Pinned by the PRD (`docs/PRD.md` §5.2): React + Vite + TypeScript + Tailwind CSS. The frontend is served as Cloudflare Workers static assets (the successor to Pages), so one deploy ships the SPA and the API. A Cloudflare Worker serves `/api/*`, with D1 for greetings and R2 only if assets must persist. The Anthropic Claude API is called only from the Worker. Animation is procedural Canvas/SVG drawn in the browser.
+Pinned by the PRD (`docs/PRD.md` §5.2): React + Vite + TypeScript + Tailwind CSS. The frontend is served as Cloudflare Workers static assets (the successor to Pages), so one deploy ships the SPA and the API. A Cloudflare Worker serves `/api/*`, with D1 for greetings and R2 only if assets must persist. Animation is procedural Canvas/SVG drawn in the browser.
 
 ## Users
 
@@ -17,7 +17,7 @@ Pinned by the PRD (`docs/PRD.md` §5.2): React + Vite + TypeScript + Tailwind CS
 
 ## Product Purpose
 
-The product is **Diwali 2026 — Compile Your Light**, a campaign by Interioring. A sender types a name and an optional wish (or picks one, or asks for an AI-suggested one). They get back a 10–15 s animation, made for that person, of a diya being lit and a rangoli forming. It comes with a link they can share and a 9:16 video they can download.
+The product is **Diwali 2026 — Compile Your Light**, a campaign by Interioring. A sender types a name and an optional wish (or picks one of ours). They get back a 10–15 s animation, made for that person, of a diya being lit and a rangoli forming. It comes with a link they can share and a 9:16 video they can download.
 
 Success means greetings that actually get shared: links created, share actions started, and recipients visiting. Recipients who go on to make their own greeting are the growth loop.
 
@@ -35,7 +35,9 @@ The greeting is generated, not picked from a template. Each one is a procedural 
 
 - The full functional spec is in `docs/PRD.md`, with acceptance criteria in §9.
 - **Release priority for the 8 Nov deadline** (confirmed): the greeting animation, the share link, and WhatsApp and copy-link sharing come first, then video export as fast as possible. P1 items wait.
-- The core journey must work without AI. Claude-generated wishes are optional, with curated fallbacks.
+- No AI and no API keys: wishes come from a curated list only. AI-written wishes were removed at the user's request on 7 Nov 2026.
+- The exported video's closing frame invites the viewer to make their own at diwali2026.interioring.com (the user's request, 7 Nov 2026), because the video carries no link. On the page, the button does that job (the user's choice after the 7 Nov review).
+- The end frame is gift-first: the name, the wish and "With love, …" stay to the end, with the brand lines smaller below (the user's choice after the 7 Nov review).
 - Video export must detect codec support at runtime. Never label WebM as MP4. If export isn't possible, fall back to the share link.
 - No accounts. The only sender data is an optional "From" name the sender chooses to sign with ("With love, …"), added at the user's request on 7 Nov 2026. Never collect email, phone or contacts. Public IDs must be unguessable, with short retention (45 days) and a way to report or remove a greeting.
 - Video must play inside WhatsApp's in-app browser and on iOS Safari.
@@ -62,7 +64,7 @@ The greeting is generated, not picked from a template. Each one is a procedural 
 
 1. **The greeting is the gift.** Every decision serves the moment the recipient sees their own name lit up. Creating it and branding it come second.
 2. **A minute from intent to send.** One required field. Everything else is optional or has a sensible default.
-3. **Honest capability.** Feature-detect, then degrade clearly: a share link when video can't be made, curated wishes when AI is down, and "share initiated" rather than "shared".
+3. **Honest capability.** Feature-detect, then degrade clearly: a share link when video can't be made, and "share initiated" rather than "shared".
 4. **Light on the wire.** It has to be fast on Diwali-night mobile networks and in WhatsApp's in-app browser. Procedural visuals are used instead of downloaded imagery.
 5. **Inclusive by default.** Wishes don't assume a religion or politics, which suits a greeting sent to colleagues and customers.
 

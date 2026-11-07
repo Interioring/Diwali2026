@@ -11,6 +11,9 @@ interface Props {
   stageRef?: React.RefObject<HTMLElement | null>;
   /** Changing this restarts playback from t = 0. */
   playKey?: number;
+  /** Changing this (to non-zero) jumps playback forward to `skipTo` seconds. */
+  skipKey?: number;
+  skipTo?: number;
   onTime?: (t: number) => void;
   className?: string;
   label: string;
@@ -20,7 +23,7 @@ interface Props {
  * Full-bleed canvas behind the page: the floor extends to every edge while
  * the greeting itself is laid out in its frame.
  */
-export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey = 0, onTime, className = "", label }: Props) {
+export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey = 0, skipKey = 0, skipTo = 0, onTime, className = "", label }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<GreetingRenderer | null>(null);
   const startRef = useRef(0);
@@ -139,6 +142,18 @@ export function SceneCanvas({ mode, data, reserveBottom = 0, stageRef, playKey =
       if (swapTimer) clearTimeout(swapTimer);
     };
   }, [mode, playKey]);
+
+  // Skip: move the clock's origin so the running loop continues from skipTo.
+  useEffect(() => {
+    if (!skipKey || !readyRef.current) return;
+    if (prefersReducedMotion()) {
+      rendererRef.current?.draw(DURATION);
+      lastTRef.current = DURATION;
+      onTimeRef.current?.(DURATION);
+      return;
+    }
+    startRef.current = Math.min(startRef.current, performance.now() - skipTo * 1000);
+  }, [skipKey, skipTo]);
 
   // In reduced motion, redraw still frames when text changes.
   useEffect(() => {

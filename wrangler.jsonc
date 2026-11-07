@@ -21,7 +21,6 @@
     }
   ],
   "ratelimits": [
-    { "name": "RL_GREETINGS", "namespace_id": "2026001", "simple": { "limit": 12, "period": 60 } },
-    { "name": "RL_WISHES", "namespace_id": "2026002", "simple": { "limit": 8, "period": 60 } }
+    { "name": "RL_GREETINGS", "namespace_id": "2026001", "simple": { "limit": 12, "period": 60 } }
   ]
 }

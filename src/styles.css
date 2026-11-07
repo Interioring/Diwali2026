@@ -88,6 +88,8 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
+}
+a:not([class*="rounded"]):focus-visible {
   border-radius: 6px;
 }
 
@@ -96,9 +98,17 @@ textarea {
   caret-color: var(--color-gold);
 }
 
+/* On phones the creator's main button is pinned to the bottom: keep focused
+   fields scrolled clear of it. */
+@media (max-width: 767.98px) {
+  html {
+    scroll-padding-bottom: 8.5rem;
+  }
+}
+
 /* A row of pulli dots: the powder edge every field and rule is drawn with. */
 .powder-edge {
-  background-image: radial-gradient(circle, rgba(244, 239, 228, 0.55) 1.3px, transparent 1.8px);
+  background-image: radial-gradient(circle, rgba(244, 239, 228, 0.7) 1.4px, transparent 1.9px);
   background-size: 10px 4px;
   background-repeat: repeat-x;
   background-position: 0 100%;

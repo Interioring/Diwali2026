@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw, Sparkles, PencilLine } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { RefreshCw, PencilLine } from "lucide-react";
 import { LIMITS, STYLE_LABELS, WISH_STYLES, cleanText, type WishStyle } from "../../shared/greeting.ts";
 import { CURATED_WISHES } from "../../shared/wishes.ts";
 import { SceneCanvas } from "../components/SceneCanvas.tsx";
 import { Button, MakerMark, StepNumber } from "../components/ui.tsx";
-import { createGreeting, suggestWishes } from "../lib/api.ts";
+import { createGreeting } from "../lib/api.ts";
 import { track } from "../lib/analytics.ts";
 import { navigate } from "../lib/router.ts";
 import { randomSeed } from "../greeting/random.ts";
@@ -50,24 +50,25 @@ const SHORT_STYLE: Record<WishStyle, string> = {
 
 export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
   const [draft, setDraft] = useState<Draft>(loadDraft);
-  const [pool, setPool] = useState<{ style: WishStyle; source: "ai" | "curated"; wishes: string[]; index: number }>(() => ({
-    style: draft.style,
-    source: "curated",
-    wishes: CURATED_WISHES[draft.style],
-    index: Math.max(0, CURATED_WISHES[draft.style].indexOf(draft.message)),
-  }));
-  const [aiState, setAiState] = useState<"idle" | "loading" | "note">("idle");
-  const [aiNote, setAiNote] = useState("");
+  const [wishIndex, setWishIndex] = useState(() => Math.max(0, CURATED_WISHES[draft.style].indexOf(draft.message)));
   const [nameError, setNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const stageRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const wishRef = useRef<HTMLTextAreaElement>(null);
+  // Made with "Make one for someone else": this greeting may skip to the send actions.
+  const repeatRef = useRef(Boolean((history.state as { another?: boolean } | null)?.another));
   const startedRef = useRef(false);
 
   useEffect(() => {
     track(fromRecipient ? "recipient_create_start" : "landing_view", { once: true });
   }, [fromRecipient]);
+
+  // Arriving from "Make one for someone else": the wish is kept, so go straight to the name.
+  useEffect(() => {
+    if ((history.state as { another?: boolean } | null)?.another) nameRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     try {
@@ -76,6 +77,19 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
       // storage may be unavailable; the draft still lives in memory
     }
   }, [draft]);
+
+  // The wish box fits its text, so the powder edge sits right under the last line.
+  useLayoutEffect(() => {
+    const fit = () => {
+      const el = wishRef.current;
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [draft.message]);
 
   const sceneData = useMemo(
     () => ({ recipientName: cleanText(draft.name, LIMITS.nameMax), message: draft.message, seed: draft.seed }),
@@ -92,32 +106,15 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
   };
 
   const chooseStyle = (style: WishStyle) => {
-    const wishes = CURATED_WISHES[style];
-    setPool({ style, source: "curated", wishes, index: 0 });
-    setAiState("idle");
-    update({ style, message: draft.edited ? draft.message : wishes[0] });
+    setWishIndex(0);
+    update({ style, message: draft.edited ? draft.message : CURATED_WISHES[style][0] });
   };
 
   const anotherWish = () => {
-    const next = (pool.index + 1) % pool.wishes.length;
-    setPool({ ...pool, index: next });
-    update({ message: pool.wishes[next], edited: false });
-  };
-
-  const askAi = async () => {
-    setAiState("loading");
-    track("wish_ai_requested");
-    const res = await suggestWishes(draft.style);
-    const fresh = res.wishes.filter((w) => w !== draft.message);
-    const list = fresh.length ? fresh : res.wishes;
-    setPool({ style: draft.style, source: res.source, wishes: list, index: 0 });
-    update({ message: list[0], edited: false });
-    if (res.source === "ai") {
-      setAiState("idle");
-    } else {
-      setAiState("note");
-      setAiNote("The AI writer is resting, so here's one of ours.");
-    }
+    const wishes = CURATED_WISHES[draft.style];
+    const next = (wishIndex + 1) % wishes.length;
+    setWishIndex(next);
+    update({ message: wishes[next], edited: false });
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -147,7 +144,7 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
       });
       track("greeting_created");
       rememberMine(greeting.id);
-      navigate(`/g/${greeting.id}`, { greeting, fresh: true });
+      navigate(`/g/${greeting.id}`, { greeting, fresh: true, skippable: repeatRef.current });
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "We couldn't save the greeting. Please try again.");
       setSaving(false);
@@ -183,7 +180,7 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
           <section aria-labelledby="step-name">
             <div className="flex items-center gap-3">
               <StepNumber n={1} active={!draft.name} />
-              <label id="step-name" htmlFor="recipient" className="text-[1.02rem] font-semibold text-ink">
+              <label id="step-name" htmlFor="recipient" className="text-[1.08rem] font-semibold text-ink">
                 Their name
               </label>
             </div>
@@ -203,26 +200,26 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
                   update({ name: e.target.value });
                   if (nameError) setNameError("");
                 }}
-                className="w-full bg-transparent text-[1.35rem] font-medium leading-tight text-powder placeholder:text-ink-faint/80 focus:outline-none"
+                className="w-full bg-transparent text-[1.35rem] font-medium leading-tight text-powder placeholder:text-ink-faint focus:outline-none"
               />
             </div>
-            <div className="mt-1.5 flex min-h-5 justify-between text-[0.86rem]">
-              <span id="name-error" role="alert" className="text-alert">
+            <div className="flex justify-between text-[0.9rem]">
+              <span id="name-error" role="alert" className={nameError ? "mt-2 text-alert" : ""}>
                 {nameError}
               </span>
-              {nameLeft <= 10 && <span className="text-ink-faint tabular-nums">{nameLeft} left</span>}
+              {nameLeft <= 10 && <span className="mt-2 text-ink-dim tabular-nums">{nameLeft} left</span>}
             </div>
           </section>
 
           <section aria-labelledby="step-wish">
             <div className="flex items-center gap-3">
               <StepNumber n={2} />
-              <label id="step-wish" htmlFor="wish" className="text-[1.02rem] font-semibold text-ink">
+              <label id="step-wish" htmlFor="wish" className="text-[1.08rem] font-semibold text-ink">
                 Your wish
               </label>
             </div>
 
-            <div role="radiogroup" aria-label="Wish style" className="-mx-6 mt-3 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none]">
+            <div role="radiogroup" aria-label="Wish style" className="-mx-6 mt-1.5 flex gap-2 overflow-x-auto px-6 py-1.5 [scrollbar-width:none]">
               {WISH_STYLES.map((style) => {
                 const on = draft.style === style;
                 return (
@@ -246,15 +243,16 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
             <div className="powder-edge mt-4 pb-2">
               <textarea
                 id="wish"
+                ref={wishRef}
                 value={draft.message}
                 maxLength={LIMITS.messageMax}
-                rows={3}
+                rows={2}
                 onChange={(e) => update({ message: e.target.value, edited: true })}
-                className="w-full resize-none bg-transparent text-[1.15rem] leading-relaxed text-ink focus:outline-none"
+                className="block w-full resize-none overflow-hidden bg-transparent text-[1.15rem] leading-[1.5] text-ink focus:outline-none"
               />
             </div>
-            <div className="mt-1.5 flex items-start justify-between gap-3 text-[0.86rem] text-ink-faint">
-              <span aria-live="polite">{aiState === "note" ? aiNote : pool.source === "ai" ? "Written by AI for this style. Edit it freely." : "Tap the wish to make it your own."}</span>
+            <div className="mt-2 flex items-start justify-between gap-3 text-[0.9rem] text-ink-dim">
+              <span>Tap the wish to make it your own.</span>
               <span className="shrink-0 tabular-nums">{msgLeft <= 40 ? `${msgLeft} left` : ""}</span>
             </div>
 
@@ -262,10 +260,6 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
               <Button onClick={anotherWish}>
                 <RefreshCw className="size-4" strokeWidth={1.8} aria-hidden="true" />
                 Another wish
-              </Button>
-              <Button onClick={askAi} disabled={aiState === "loading"} aria-busy={aiState === "loading"}>
-                <Sparkles className="size-4" strokeWidth={1.8} aria-hidden="true" />
-                {aiState === "loading" ? "Writing wishes…" : "Write me new ones"}
               </Button>
               <Button
                 variant="quiet"
@@ -283,7 +277,7 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
           <section aria-labelledby="step-from">
             <div className="flex items-center gap-3">
               <StepNumber n={3} />
-              <label id="step-from" htmlFor="sender" className="text-[1.02rem] font-semibold text-ink">
+              <label id="step-from" htmlFor="sender" className="text-[1.08rem] font-semibold text-ink">
                 From <span className="font-normal text-ink-faint">(optional)</span>
               </label>
             </div>
@@ -297,16 +291,16 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
                 enterKeyHint="done"
                 placeholder="Your name"
                 onChange={(e) => update({ sender: e.target.value })}
-                className="w-full bg-transparent text-[1.35rem] font-medium leading-tight text-powder placeholder:text-ink-faint/80 focus:outline-none"
+                className="w-full bg-transparent text-[1.35rem] font-medium leading-tight text-powder placeholder:text-ink-faint focus:outline-none"
               />
             </div>
-            <p className="mt-1.5 flex justify-between text-[0.86rem] text-ink-faint">
+            <p className="mt-2 flex justify-between text-[0.9rem] text-ink-dim">
               <span>Signed at the end: “With love, {cleanText(draft.sender, LIMITS.senderMax) || "your name"}”.</span>
               {senderLeft <= 10 && <span className="tabular-nums">{senderLeft} left</span>}
             </p>
           </section>
 
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 px-6 pb-[max(1rem,env(safe-area-inset-bottom))] md:pointer-events-auto md:static md:p-0 [&_button]:pointer-events-auto [&_p]:pointer-events-auto">
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 bg-[linear-gradient(to_top,rgba(32,11,7,0.97)_42%,rgba(32,11,7,0))] px-6 pt-12 pb-[max(1rem,env(safe-area-inset-bottom))] md:pointer-events-auto md:static md:bg-none md:p-0 [&_button]:pointer-events-auto [&_p]:pointer-events-auto">
             <div className="mx-auto flex w-full max-w-[30rem] flex-col gap-2 md:max-w-none">
               {saveError && (
                 <p role="alert" className="text-center text-[0.92rem] text-alert">

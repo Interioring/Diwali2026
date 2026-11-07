@@ -31,7 +31,7 @@ typography:
     lineHeight: 1.25
   title:
     fontFamily: "Anek Latin, system-ui, sans-serif"
-    fontSize: "1.02rem"
+    fontSize: "1.08rem"
     fontWeight: 600
     lineHeight: 1.4
   field:
@@ -46,7 +46,7 @@ typography:
     lineHeight: 1.375
   label:
     fontFamily: "Anek Latin, system-ui, sans-serif"
-    fontSize: "0.86rem"
+    fontSize: "0.9rem"
     fontWeight: 400
     lineHeight: 1.375
   numeral:
@@ -159,7 +159,7 @@ A night palette of red-oxide grounds and warm off-white powder, with a single fl
 - **Rice Powder** (powder): The kolam line, headings (h1 "Compile your light"), field values, the sender's name, "Happy Diwali 2026", the closing lockup, and the selected chip and toast fills.
 - **Lamp-lit Ink** (ink): Default text and the wish in the greeting.
 - **Dusk Ink** (ink-dim): Secondary copy, the "With love," prefix, quiet buttons, and resting share-action labels.
-- **Ash Ink** (ink-faint): The maker's mark, helper notes, counters and placeholders.
+- **Ash Ink** (ink-faint): The maker's mark, the privacy note, and placeholders (at full strength, not faded).
 - **Night Oxide** (oxide-900): The root background, and the text colour on gold and powder fills. **Oxide 700** is the hover wash on powder controls and share actions. **Red Oxide** (oxide-500, rgb 134 52 33) is the floor's base pigment in the canvas. Oxide 950 and 800 complete the defined ramp.
 - **Alert Coral** (alert): Inline error notes and the invalid field's dots. It always comes with text, never colour alone.
 
@@ -184,15 +184,15 @@ A night palette of red-oxide grounds and warm off-white powder, with a single fl
 - **Title** (Anek 600, 1.02rem): step labels.
 - **Field** (Anek 500, 1.35rem): name and sender inputs. The wish textarea is Anek 400 at 1.15rem with relaxed leading.
 - **Body** (Anek 400, 1.04rem, snug): the intro line, capped near 30ch, pretty-wrapped.
-- **Label** (Anek 400, 0.86rem): helper notes and counters. Share-action labels are 500 at 0.76rem, and the maker's mark is 0.82rem.
-- **Canvas lettering (1080×1920 frame):** the name is Eczar 700, starting at 132px and shrinking to 76px within a 920px measure, in gold. The wish is Anek 420, 50 down to 36px, within 880px and at most 4 lines, with the rag balanced. "With love, <name>" is Anek, a 400 prefix plus a 650 name, at 42px (28px minimum). "Happy Diwali 2026" is Eczar 600 at 72px. The closing line is Anek 400 at 42px.
+- **Label** (Anek 400, 0.9rem, Dusk Ink): helper notes and counters. Share-action labels are 500 at 0.76rem, and the maker's mark is 0.82rem.
+- **Canvas lettering (1080×1920 frame):** the name is Eczar 700, starting at 132px and shrinking to 76px within a 920px measure, in gold. The wish is Anek 420, 50 down to 36px, within 880px and at most 4 lines, with the rag balanced. "With love, <name>" is Anek, a 400 prefix plus a 650 name, at 42px (28px minimum). In the sign-off the gift block eases to a resting layout: the name at up to 100px (84px for two lines), the wish at up to 42px and "With love" at up to 38px, scaled down together (never below 70%) when a long name, a long wish and the brand lines would run past the frame. Below it, smaller: "Happy Diwali 2026" in Eczar 600 at 50px, the closing line in Anek 400 at 32px, and the lockup at 28px.
 
 ### Named Rules
 **The Two Voices Rule.** Eczar writes names, festival lines and step numerals. Anek Latin writes everything you operate. Never set UI in Eczar or a greeting name in Anek.
 
 ## Layout
 
-The floor is full-bleed and fixed behind the content. Content sits in one centred column (max 30rem on mobile, 34rem at md) with a 24px side inset (20px on the greeting's share sheet) and safe-area-aware top and bottom padding. On create, the header is followed by a reserved stage box (min(23rem, 46svh), or min(26rem, 48svh) at sm) where the canvas draws the kolam and the typed name. Below it are three numbered steps, 36px apart. The flame action is pinned in the thumb zone on mobile and returns to the flow at md. The greeting page is a single 100dvh stage: music and replay controls sit in the top corners, and the share sheet rises in from the bottom once the greeting closes. Canvas composition is always in the 1080×1920 logical frame, scaled to fit, so the preview and the 9:16 video share a layout.
+The floor is full-bleed and fixed behind the content. Content sits in one centred column (max 30rem on mobile, 34rem at md) with a 24px side inset (20px on the greeting's share sheet) and safe-area-aware top and bottom padding. On create, the header is followed by a reserved stage box (min(23rem, 46svh), or min(26rem, 48svh) at sm) where the canvas draws the kolam and the typed name. Below it are three numbered steps, 36px apart. The flame action is pinned in the thumb zone on mobile, over a fade to the night floor so the form dims out beneath it, and returns to the flow at md. The wish field grows with its text, so its powder edge sits under the last line. Until a name is typed the stage shows only the kolam (no ghost name). Focus rings follow each control's own shape (pills stay pills), and the scrolling chip row keeps room for them. The greeting page is a single 100dvh stage: music and replay controls sit in the top corners, and the share sheet rises in from the bottom once the greeting closes. Canvas composition is always in the 1080×1920 logical frame, scaled to fit, so the preview and the 9:16 video share a layout.
 
 ## Elevation & Depth
 
@@ -224,7 +224,7 @@ Controls are pill-shaped (fully rounded). Step numerals are 28px powder circles.
 - **State:** selected is a solid powder fill with oxide-900 text, never gold.
 
 ### Inputs / Fields
-- **Style:** a transparent field with a powder-dot bottom edge. Values are set in powder, and placeholders in ink-faint at 80%.
+- **Style:** a transparent field with a powder-dot bottom edge. Values are set in powder, and placeholders in ink-faint.
 - **Focus:** the dots turn gold and become the focus indicator. The caret is gold.
 - **Error:** the dots turn alert coral, with a role="alert" note below in alert coral.
 
@@ -235,7 +235,7 @@ There is no navigation bar. The greeting page carries two floating corner contro
 Eczar numerals in 28px powder rings. The current step turns gold. They teach the three-step order.
 
 ### Share Actions
-A 4-column grid of 64px tiles: a 20px Lucide line icon (stroke 1.8) over an Anek 500 label, in ink-dim at rest and with an oxide-700 wash on hover. The labels are exact: "Download video", "WhatsApp", "Copy link", "Share", "Edit".
+A 4-column grid of 64px tiles: a 20px Lucide line icon (stroke 1.8) over an Anek 500 label, in ink-dim at rest and with an oxide-700 wash on hover. The labels are exact: "Download video", "WhatsApp", "Copy link", "Share", "Edit". Report asks inline, "Hide this greeting for everyone?" with Hide and Keep, before it acts, and steps aside while a video is being made or saved. The share sheet is `inert` until it appears. On greetings made with "Make one for someone else", a powder "Skip to send" button sits where the sheet will appear and jumps the film to 11.4 s; the first greeting always plays in full. Under the grid, the sender gets a powder button, "Make one for someone else", which opens the creator with the same wish and "From" name, an empty name field (focused) and a new kolam seed, so one person can send to many quickly.
 
 ### Export Progress
 A powder dot line (1.4px dots on a 10px pitch at 28%) overdrawn by gold dots as the video renders, with a gold tabular percentage, "Drawing your video", and a quiet Cancel.
@@ -243,8 +243,11 @@ A powder dot line (1.4px dots on a 10px pitch at 28%) overdrawn by gold dots as 
 ### Maker's Mark
 The official Interioring house mark (the unaltered path from interioring.com/favicon.svg, filled with the current colour), followed by "Made with love by **Interioring**", with the wordmark set at 760 weight and 112% width. It is discreet: ink-faint at 0.82rem in the DOM, and 60% opacity at 27px at the foot of the canvas frame until the sign-off takes over. The closing lockup sets the mark with the wordmark "Interioring" in powder.
 
+### Closing Invitation (video only)
+In the exported video, an invitation sits under the lockup: "Send a personal Diwali greeting to your friends at" in Anek 400 at 28px, Dusk Ink, over "diwali2026.interioring.com" in Anek 650 at 34px, Rice Powder (12.45–13.55). A video on someone's Status carries no link, so the address is spelled out. The page leaves it out: its own "Make one for someone" button does that job.
+
 ### Greeting Canvas (signature)
-A timeline in seconds. An ember strikes the first wick (0.15–0.95). The dots appear as the light reaches them (1.0–2.2). The powder line draws (1.9–6.3). Petals bloom with a colour ripple (5.5–7.1). Light runs along the kolam to each side lamp (6.55–7.6). A phuljhadi writes the name (7.7–9.1), then the wish arrives (8.9–10.0) and the optional "With love, <name>" (9.9–10.6). The text clears (11.2–11.8) for the closing: the name, "Happy Diwali 2026", "May your lives and homes shine brighter." and the Interioring lockup (11.7–12.8). Total length is 14s. Reduced motion shows the still frame at 10.6s. An original synthesised score follows the same timeline: a tanpura drone, a bell on each ignition, a raag Bhupali bansuri phrase, santoor at the petals, sparkler crackle and a closing chord. It is opt-in on the page through "Play with music" and baked into the MP4.
+A timeline in seconds. An ember strikes the first wick (0.15–0.95). The dots appear as the light reaches them (1.0–2.2). The powder line draws (1.9–6.3). Petals bloom with a colour ripple (5.5–7.1). Light runs along the kolam to each side lamp (6.55–7.6). A phuljhadi writes the name (7.7–9.1), then the wish arrives (8.9–10.0) and the optional "With love, <name>" (9.9–10.6). The closing is gift-first (11.7–12.8): the name, the wish and "With love" stay and ease together into their resting places, so nothing crosses anything else. Then "Happy Diwali 2026" and "May your lives and homes shine brighter." fade in below (from 12.15), then the Interioring lockup (from 12.3), and in the video the invitation (from 12.45). Total length is 14s. Reduced motion shows the still frame at 10.6s. An original synthesised score follows the same timeline: a tanpura drone, a bell on each ignition, a raag Bhupali bansuri phrase, santoor at the petals, sparkler crackle and a closing chord. It is opt-in on the page through "Play with music" and baked into the MP4.
 
 ## Do's and Don'ts
 

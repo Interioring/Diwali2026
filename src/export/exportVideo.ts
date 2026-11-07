@@ -106,6 +106,7 @@ async function encodeWithWebCodecs(
 ): Promise<ExportResult> {
   const canvas = document.createElement("canvas");
   const renderer = new GreetingRenderer(canvas, "play");
+  renderer.showInvite = true; // the video carries no link, so it ends on the address
   renderer.resize(width, height);
   renderer.setData(data);
 
@@ -197,6 +198,7 @@ async function recordWithMediaRecorder(
 ): Promise<Blob> {
   const canvas = document.createElement("canvas");
   const renderer = new GreetingRenderer(canvas, "play");
+  renderer.showInvite = true;
   renderer.resize(720, 1280);
   renderer.setData(data);
   renderer.draw(0);

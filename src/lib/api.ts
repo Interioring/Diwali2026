@@ -1,5 +1,4 @@
-import type { Greeting, GreetingInput, WishStyle } from "../../shared/greeting.ts";
-import { CURATED_WISHES } from "../../shared/wishes.ts";
+import type { Greeting, GreetingInput } from "../../shared/greeting.ts";
 
 export class ApiError extends Error {
   constructor(
@@ -40,12 +39,4 @@ export function fetchGreeting(id: string): Promise<Greeting> {
 
 export function reportGreeting(id: string): Promise<{ ok: boolean }> {
   return request(`/api/greetings/${encodeURIComponent(id)}/report`, { method: "POST", body: "{}" });
-}
-
-export async function suggestWishes(style: WishStyle): Promise<{ source: "ai" | "curated"; wishes: string[] }> {
-  try {
-    return await request("/api/wishes/generate", { method: "POST", body: JSON.stringify({ style }) }, 25000);
-  } catch {
-    return { source: "curated", wishes: CURATED_WISHES[style] };
-  }
 }

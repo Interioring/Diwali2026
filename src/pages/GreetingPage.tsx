@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, Link2, MessageCircle, RotateCcw, Share2, PencilLine, Flag, Music2, VolumeX } from "lucide-react";
+import { Download, Link2, MessageCircle, RotateCcw, Share2, PencilLine, Flag, Music2, VolumeX, UserPlus, SkipForward } from "lucide-react";
 import { MusicPlayer, renderMusic } from "../audio/music.ts";
 import type { Greeting } from "../../shared/greeting.ts";
+import { CURATED_WISHES } from "../../shared/wishes.ts";
+import { randomSeed } from "../greeting/random.ts";
 import { SceneCanvas } from "../components/SceneCanvas.tsx";
 import { Button, LinkButton, MakerMark } from "../components/ui.tsx";
 // The sign-off on the canvas carries the Interioring lockup; the page adds no second mark.
@@ -32,16 +34,25 @@ type VideoState =
   | { kind: "failed"; message: string }
   | { kind: "unsupported" };
 
-const ACTIONS_HEIGHT = 196;
+// Room kept under the frame for the actions, sized to each role's tallest state
+// (the sender's "video ready" stack), so buttons never sit on the sign-off.
+const ACTIONS_HEIGHT = { sender: 238, recipient: 196 };
 const SHOW_ACTIONS_AT = 11.8;
+// "Skip to send" lands just before the sign-off, so the gift still settles into place.
+const SKIP_TO = 11.4;
 
 export function GreetingPage({ id }: { id: string }) {
-  const navState = history.state as { greeting?: Greeting; fresh?: boolean } | null;
+  const navState = history.state as { greeting?: Greeting; fresh?: boolean; skippable?: boolean } | null;
   const [load, setLoad] = useState<LoadState>(() =>
     navState?.greeting?.id === id ? { kind: "ready", greeting: navState.greeting } : { kind: "loading" },
   );
   const mine = useMemo(() => Boolean(navState?.fresh) || isMine(id), [id, navState?.fresh]);
   const [playKey, setPlayKey] = useState(0);
+  const [skipKey, setSkipKey] = useState(0);
+  // Greetings made with "Make one for someone else" can skip to the send actions;
+  // the first one always plays in full.
+  const skippable = mine && Boolean(navState?.skippable);
+  const [confirmReport, setConfirmReport] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [toast, setToast] = useState("");
   const [video, setVideo] = useState<VideoState>({ kind: "idle" });
@@ -86,6 +97,11 @@ export function GreetingPage({ id }: { id: string }) {
       musicRef.current?.close();
     };
   }, []);
+
+  const skipToSend = () => {
+    setSkipKey((k) => k + 1);
+    if (music === "on") void musicRef.current?.play(SKIP_TO);
+  };
 
   const restart = (withMusic: boolean) => {
     setShowActions(false);
@@ -199,13 +215,31 @@ export function GreetingPage({ id }: { id: string }) {
     });
   };
 
+  // Same wish and signature, a new name and a new kolam: the quick way to send many.
+  const makeAnother = () => {
+    track("create_another");
+    navigate("/", {
+      another: true,
+      draft: {
+        name: "",
+        sender: greeting.senderName ?? "",
+        message: greeting.message,
+        style: greeting.style,
+        seed: randomSeed(),
+        edited: !CURATED_WISHES[greeting.style].includes(greeting.message),
+      },
+    });
+  };
+
   return (
     <div className="relative h-dvh overflow-hidden bg-[#200b07]">
       <SceneCanvas
         mode="play"
         data={sceneData}
-        reserveBottom={ACTIONS_HEIGHT}
+        reserveBottom={mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient}
         playKey={playKey}
+        skipKey={skipKey}
+        skipTo={SKIP_TO}
         onTime={onTime}
         label={`A Diwali greeting for ${greeting.recipientName}: a kolam drawn in rice powder, diyas lit, and the wish "${greeting.message}"${greeting.senderName ? `, with love from ${greeting.senderName}` : ""}. Happy Diwali 2026. May your lives and homes shine brighter. Interioring.`}
       />
@@ -236,12 +270,22 @@ export function GreetingPage({ id }: { id: string }) {
         Replay
       </button>
 
+      {skippable && !showActions && (
+        <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          <Button onClick={skipToSend}>
+            <SkipForward className="size-[1.05rem]" strokeWidth={1.8} aria-hidden="true" />
+            Skip to send
+          </Button>
+        </div>
+      )}
+
       <section
         aria-label="Share this greeting"
+        inert={!showActions}
         className={`absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(0.9rem,env(safe-area-inset-bottom))] transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${
           showActions ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
         }`}
-        style={{ minHeight: ACTIONS_HEIGHT }}
+        style={{ minHeight: mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient }}
       >
         <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-3">
           {video.kind === "working" ? (
@@ -253,9 +297,7 @@ export function GreetingPage({ id }: { id: string }) {
                 Download video
               </Button>
               <p className="text-center text-[0.86rem] leading-snug text-ink-dim text-pretty">
-                {video.withMusic
-                  ? "The music is in the video. Share it from your gallery to WhatsApp or Instagram."
-                  : "This phone saved the video without music. Share it from your gallery to WhatsApp or Instagram."}
+                {video.withMusic ? "Music included. Share it from your gallery." : "Saved without music. Share it from your gallery."}
               </p>
             </div>
           ) : mine ? (
@@ -317,32 +359,61 @@ export function GreetingPage({ id }: { id: string }) {
             )}
           </div>
 
-          <div className="flex min-h-11 items-center justify-end">
-            {!mine && (
-              <button
-                type="button"
-                disabled={reported}
-                onClick={async () => {
-                  setReported(true);
-                  try {
-                    await reportGreeting(greeting.id);
-                    say("Reported. This greeting is now hidden.");
-                  } catch {
-                    setReported(false);
-                    say("Couldn't send the report. Try again.");
-                  }
-                }}
-                className="inline-flex min-h-11 items-center gap-1 text-[0.8rem] text-ink-faint hover:text-ink disabled:opacity-60"
-              >
-                <Flag className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
-                {reported ? "Reported" : "Report"}
-              </button>
-            )}
-          </div>
+          {mine && video.kind !== "working" && (
+            <Button onClick={makeAnother}>
+              <UserPlus className="size-[1.1rem]" strokeWidth={1.8} aria-hidden="true" />
+              Make one for someone else
+            </Button>
+          )}
+
+          {!mine && video.kind !== "working" && video.kind !== "ready" && (
+            <div className="flex min-h-11 items-center justify-end gap-1 text-[0.8rem]">
+              {confirmReport && !reported ? (
+                // Hiding is immediate and for everyone, so it takes a second, deliberate tap.
+                <>
+                  <span className="mr-1 text-ink-dim">Hide this greeting for everyone?</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setReported(true);
+                      setConfirmReport(false);
+                      try {
+                        await reportGreeting(greeting.id);
+                        say("Reported. This greeting is now hidden.");
+                      } catch {
+                        setReported(false);
+                        say("Couldn't send the report. Try again.");
+                      }
+                    }}
+                    className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-alert hover:text-powder"
+                  >
+                    Hide
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReport(false)}
+                    className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-ink hover:text-powder"
+                  >
+                    Keep
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled={reported}
+                  onClick={() => setConfirmReport(true)}
+                  className="inline-flex min-h-11 items-center gap-1 text-ink-faint hover:text-ink disabled:opacity-60"
+                >
+                  <Flag className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                  {reported ? "Reported" : "Report"}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
-      <div aria-live="polite" className="pointer-events-none absolute inset-x-0 top-[max(1rem,env(safe-area-inset-top))] z-20 flex justify-center">
+      <div aria-live="polite" className="pointer-events-none absolute inset-x-0 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.5rem)] z-20 flex justify-center">
         {toast && (
           <span className="rise-in rounded-full bg-powder px-4 py-2 text-[0.92rem] font-medium text-oxide-900 shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5)]">
             {toast}

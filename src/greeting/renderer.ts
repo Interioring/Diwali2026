@@ -47,6 +47,10 @@ const COLORS = {
 const FONT_DISPLAY = "Eczar, Georgia, serif";
 const FONT_UI = '"Anek Latin", Eczar, system-ui, sans-serif';
 
+/** The closing invitation. A video on someone's Status carries no link, so the address is spelled out. */
+export const SITE_HOST = "diwali2026.interioring.com";
+const INVITE_LINE = "Send a personal Diwali greeting to your friends at";
+
 // Timeline (seconds)
 const T = {
   strike: [0.15, 0.95], // an ember falls to the first wick
@@ -60,7 +64,6 @@ const T = {
   name: [7.7, 9.1], // a phuljhadi writes the name
   wish: [8.9, 10.0],
   sender: [9.9, 10.6],
-  textOut: [11.2, 11.8],
   closing: [11.7, 12.8],
   camera: [0.3, 6.9],
 } as const;
@@ -68,6 +71,7 @@ const T = {
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const seg = (t: number, a: number, b: number) => clamp01((t - a) / (b - a));
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
+const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 const easeOutBack = (x: number) => {
   const c1 = 1.4;
@@ -139,7 +143,9 @@ export class GreetingRenderer {
   private closingText: TextLines | null = null;
   private senderText: { prefix: string; name: string; size: number } | null = null;
   /** Shown faintly where the name goes until one is typed; empty hides it. */
-  stagePlaceholder = "Their name";
+  stagePlaceholder = "";
+  /** Draw the closing invitation (the site address). On in the exported video only. */
+  showInvite = false;
 
   constructor(canvas: Canvas, mode: RenderMode) {
     this.canvas = canvas;
@@ -355,8 +361,8 @@ export class GreetingRenderer {
     } else {
       this.senderText = null;
     }
-    ctx.font = `400 46px ${FONT_UI}`;
-    this.closingText = { lines: wrap(ctx, "May your lives and homes shine brighter.", 900, 2), size: 46 };
+    ctx.font = `400 32px ${FONT_UI}`;
+    this.closingText = { lines: wrap(ctx, "May your lives and homes shine brighter.", 900, 2), size: 32 };
     ctx.restore();
     this.settled = null;
   }
@@ -817,7 +823,6 @@ export class GreetingRenderer {
 
   private drawPlayText(c: Ctx, t: number, tb: number) {
     const s = this.s;
-    const out = 1 - seg(tb, T.textOut[0], T.textOut[1]);
     const cp = easeOut(seg(tb, T.closing[0], T.closing[1]));
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
@@ -842,10 +847,14 @@ export class GreetingRenderer {
       c.globalAlpha = 1;
     }
 
-    // The name: written in light by a phuljhadi, then kept, smaller, through
-    // the sign-off, so the last frame still says who it is for.
+    // Where everything rests in the sign-off: the gift first (name, wish,
+    // signature), then "Happy Diwali 2026", the line and the lockup, smaller.
+    // Each part eases from its place in the film to its place here, all
+    // together, so nothing ever passes through anything else.
+    const L = this.closingLayout();
+
+    // The name: written in light by a phuljhadi, then kept as the headline.
     let wishTop = 1514;
-    let nameBottom = 1330;
     if (this.nameText && tb >= T.name[0]) {
       const { lines, size } = this.nameText;
       const base = lines.length > 1 ? 1380 : 1430;
@@ -886,59 +895,54 @@ export class GreetingRenderer {
         });
         this.drawSparkler(c, t, tb);
       } else {
-        // In the sign-off the name eases up and down a little, but never below
-        // the size of "Happy Diwali 2026": the gift stays the headline.
-        const closeSize = Math.min(size, Math.max(size * 0.82, 92));
-        const k = 1 - (1 - closeSize / size) * cp;
-        const fromY = base;
-        const toY = lines.length > 1 ? 1240 : 1300;
+        const sz = lerp(size, L.nameSize, cp);
+        const y0 = lerp(base, L.nameBase, cp);
         shadow(true);
-        c.font = `700 ${size * k * s}px ${FONT_DISPLAY}`;
+        c.font = `700 ${sz * s}px ${FONT_DISPLAY}`;
         c.fillStyle = COLORS.gold;
-        lines.forEach((line, i) => c.fillText(line, this.X(540), this.Y(fromY + (toY - fromY) * cp + i * size * k * 0.95)));
+        lines.forEach((line, i) => c.fillText(line, this.X(540), this.Y(y0 + i * sz * 0.95)));
       }
       wishTop = base + (lines.length - 1) * size * 0.95 + 84;
-      const closeSize = Math.min(size, Math.max(size * 0.82, 92));
-      const closingNameBottom = (lines.length > 1 ? 1240 : 1300) + (lines.length - 1) * closeSize * 0.95;
-      nameBottom = closingNameBottom;
     }
 
-    // the wish, line by line; it steps aside for the sign-off
+    // the wish, line by line; it stays to the end, because it is the gift
     shadow(true);
     let wishBottom = wishTop;
     if (this.wishText) {
       const { lines, size } = this.wishText;
-      c.font = `420 ${size * s}px ${FONT_UI}`;
+      const sz = lerp(size, L.wishSize, cp);
+      const y0 = lerp(wishTop, L.wishTop, cp);
+      c.font = `420 ${sz * s}px ${FONT_UI}`;
       c.fillStyle = COLORS.ink;
       lines.forEach((line, i) => {
         const a = T.wish[0] + i * 0.24;
-        const wp = easeOut(seg(tb, a, a + 0.75)) * out;
+        const wp = easeOut(seg(tb, a, a + 0.75));
         if (wp <= 0) return;
         c.globalAlpha = wp * 0.94;
-        c.fillText(line, this.X(540), this.Y(wishTop + i * size * 1.32 + (1 - wp) * 18));
+        c.fillText(line, this.X(540), this.Y(y0 + i * sz * 1.32 + (1 - wp) * 18));
       });
       c.globalAlpha = 1;
       wishBottom = wishTop + (lines.length - 1) * size * 1.32;
     }
 
-    // signed by the sender, and kept under the name through the sign-off
+    // signed by the sender, under the wish, in the film and the sign-off alike
     const sp = easeOut(seg(tb, T.sender[0], T.sender[1]));
     if (this.senderText && sp > 0) {
       const { prefix, name, size } = this.senderText;
+      const sz = lerp(size, L.senderSize, cp);
       const restY = wishBottom + 92 + (1 - sp) * 14;
-      const closeY = nameBottom + 72;
-      const y = this.Y(restY + (closeY - restY) * cp);
+      const y = this.Y(lerp(restY, L.senderY, cp));
       c.globalAlpha = sp;
-      c.font = `400 ${size * s}px ${FONT_UI}`;
+      c.font = `400 ${sz * s}px ${FONT_UI}`;
       const pw = c.measureText(prefix).width;
-      c.font = `650 ${size * s}px ${FONT_UI}`;
+      c.font = `650 ${sz * s}px ${FONT_UI}`;
       const nw = c.measureText(name).width;
       const left = this.X(540) - (pw + nw) / 2;
       c.textAlign = "left";
-      c.font = `400 ${size * s}px ${FONT_UI}`;
+      c.font = `400 ${sz * s}px ${FONT_UI}`;
       c.fillStyle = "#d9c8b6";
       c.fillText(prefix, left, y);
-      c.font = `650 ${size * s}px ${FONT_UI}`;
+      c.font = `650 ${sz * s}px ${FONT_UI}`;
       c.fillStyle = COLORS.powder;
       c.fillText(name, left + pw, y);
       c.textAlign = "center";
@@ -947,7 +951,7 @@ export class GreetingRenderer {
 
     // maker's mark, discreet, until the sign-off takes over
     shadow(false);
-    const mm = easeOut(seg(tb, 1.2, 2.4)) * (1 - cp);
+    const mm = easeOut(seg(tb, 1.2, 2.4)) * (1 - seg(tb, T.closing[0] - 0.1, T.closing[0] + 0.3));
     if (mm > 0) {
       c.globalAlpha = mm * 0.6;
       c.font = `500 ${27 * s}px ${FONT_UI}`;
@@ -964,40 +968,90 @@ export class GreetingRenderer {
       c.textAlign = "center";
     }
 
-    // the sign-off, under the name and the sender
-    if (cp > 0) {
-      const top = (this.senderText ? nameBottom + 72 : nameBottom) + 112;
+    // the sign-off, smaller, once the gift has settled
+    const bp = easeOut(seg(tb, T.closing[0] + 0.45, T.closing[1] + 0.45));
+    if (bp > 0) {
+      const lift = (1 - bp) * 20;
       shadow(true);
-      c.globalAlpha = cp;
-      const lift = (1 - cp) * 24;
-      c.font = `600 ${72 * s}px ${FONT_DISPLAY}`;
+      c.globalAlpha = bp;
+      c.font = `600 ${50 * s}px ${FONT_DISPLAY}`;
       c.fillStyle = COLORS.powder;
-      c.fillText("Happy Diwali 2026", this.X(540), this.Y(top + lift));
+      c.fillText("Happy Diwali 2026", this.X(540), this.Y(L.hdY + lift));
       const ct = this.closingText!;
-      c.font = `400 ${42 * s}px ${FONT_UI}`;
+      c.font = `400 ${ct.size * s}px ${FONT_UI}`;
       c.fillStyle = COLORS.ink;
-      ct.lines.forEach((line, i) => c.fillText(line, this.X(540), this.Y(top + 68 + i * 54 + lift)));
+      ct.lines.forEach((line, i) => c.fillText(line, this.X(540), this.Y(L.taglineY + i * 42 + lift)));
       // Interioring lockup at maker's-mark scale: official mark + wordmark
       shadow(false);
-      const lp = easeOut(seg(tb, T.closing[0] + 0.35, T.closing[1] + 0.35));
+      const lp = easeOut(seg(tb, T.closing[0] + 0.6, T.closing[1] + 0.6));
       c.globalAlpha = lp * 0.85;
-      const fontPx = 32 * s;
-      setWordmarkFont(c, fontPx);
+      setWordmarkFont(c, 28 * s);
       const word = "Interioring";
       const ww = c.measureText(word).width;
-      const iconW = 42 * s;
-      const gap = 9 * s;
-      const total = iconW + gap + ww;
-      const left = this.X(540) - total / 2;
-      const baseY = this.Y(top + 68 + ct.lines.length * 54 + 74 + (1 - lp) * 12);
-      this.drawMark(c, left, baseY - 33 * s, iconW, COLORS.powder);
+      const iconW = 37 * s;
+      const gap = 8 * s;
+      const left = this.X(540) - (iconW + gap + ww) / 2;
+      const baseY = this.Y(L.lockupY + (1 - lp) * 10);
+      this.drawMark(c, left, baseY - 29 * s, iconW, COLORS.powder);
       c.textAlign = "left";
       c.fillStyle = COLORS.powder;
       c.fillText(word, left + iconW + gap, baseY);
       resetFontStretch(c);
       c.textAlign = "center";
+
+      // In the video only: how to send one of your own. A video on someone's
+      // Status carries no link; on the page, the button below does this job.
+      const ip = this.showInvite ? easeOut(seg(tb, T.closing[0] + 0.75, T.closing[1] + 0.75)) : 0;
+      if (ip > 0) {
+        const y = L.inviteY + (1 - ip) * 10;
+        shadow(true);
+        c.globalAlpha = ip;
+        c.font = `400 ${28 * s}px ${FONT_UI}`;
+        c.fillStyle = "#d9c8b6";
+        c.fillText(INVITE_LINE, this.X(540), this.Y(y));
+        c.font = `650 ${34 * s}px ${FONT_UI}`;
+        c.fillStyle = COLORS.powder;
+        c.fillText(SITE_HOST, this.X(540), this.Y(y + 44));
+      }
     }
     c.globalAlpha = 1;
+  }
+
+  /**
+   * The sign-off's resting layout, in frame units. The gift block (name, wish,
+   * signature) starts just under the kolam's lowest loop (~y 1235) and scales
+   * down, never below 70%, when it and the brand lines (plus the invitation, in
+   * the video) would run past the foot of the frame.
+   */
+  private closingLayout() {
+    const nameLines = this.nameText?.lines.length ?? 0;
+    const wishLines = this.wishText?.lines.length ?? 0;
+    const ctLines = this.closingText?.lines.length ?? 1;
+    const name0 = this.nameText ? Math.min(this.nameText.size, nameLines > 1 ? 84 : 100) : 0;
+    const wish0 = this.wishText ? Math.min(this.wishText.size, 42) : 0;
+    const sender0 = this.senderText ? Math.min(this.senderText.size, 38) : 0;
+    const TOP = 1268;
+    // The video ends lower (it carries the invitation); the page keeps clear of its buttons.
+    const MAX = this.showInvite ? 1872 : 1844;
+    const place = (f: number) => {
+      const nameSize = name0 * f;
+      const wishSize = wish0 * f;
+      const senderSize = sender0 * f;
+      const nameBase = TOP + nameSize * 0.74;
+      let y = nameLines ? nameBase + (nameLines - 1) * nameSize * 0.95 : TOP;
+      const wishTop = y + (nameLines ? 74 * f : 40);
+      if (wishLines) y = wishTop + (wishLines - 1) * wishSize * 1.32;
+      const senderY = y + 64 * f;
+      if (this.senderText) y = senderY;
+      const hdY = y + 94;
+      const taglineY = hdY + 46;
+      const lockupY = taglineY + (ctLines - 1) * 42 + 60;
+      const inviteY = lockupY + 58;
+      const last = this.showInvite ? inviteY + 44 : lockupY;
+      return { nameSize, nameBase, wishSize, wishTop, senderSize, senderY, hdY, taglineY, lockupY, inviteY, last, giftSpan: y - TOP };
+    };
+    const full = place(1);
+    return full.last <= MAX ? full : place(Math.max(0.7, 1 - (full.last - MAX) / full.giftSpan));
   }
 
   /** The phuljhadi: a glowing tip on a wire, throwing sparks. Pure in t. */
