@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+/* Eczar for lettering (Rosetta, OFL), self-hosted per subset. */
+@font-face {
+  font-family: "Eczar";
+  src: url("/fonts/eczar-latin.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Eczar";
+  src: url("/fonts/eczar-latin-ext.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Eczar";
+  src: url("/fonts/eczar-devanagari.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0900-097F, U+1CD0-1CF4, U+1CF7-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF;
+}
+/* Anek Latin: Interioring's own face (EK Type, OFL), for UI and the wordmark. */
+@font-face {
+  font-family: "Anek Latin";
+  src: url("/fonts/anek-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-stretch: 75% 125%;
+  font-display: swap;
+}
+
+@theme {
+  --font-display: "Eczar", Georgia, serif;
+  --font-ui: "Anek Latin", system-ui, sans-serif;
+
+  --color-oxide-950: #140703;
+  --color-oxide-900: #1c0a06;
+  --color-oxide-800: #2b110a;
+  --color-oxide-700: #3d1810;
+  --color-oxide-500: #86341f;
+  --color-powder: #f4efe4;
+  --color-ink: #f3ece0;
+  --color-ink-dim: #d9c8b6;
+  --color-ink-faint: #a8907c;
+  --color-gold: #ffc95c;
+  --color-gold-deep: #f0a93a;
+  --color-rani: #e2457f;
+  --color-turmeric: #f4a930;
+  --color-leaf: #43a86c;
+  --color-alert: #ff9a7a;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color-scheme: dark;
+  background: var(--color-oxide-900);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-oxide-900);
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: rgba(255, 201, 92, 0.85);
+  color: var(--color-oxide-900);
+}
+
+* {
+  scrollbar-color: rgba(244, 239, 228, 0.28) transparent;
+  scrollbar-width: thin;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+input,
+textarea {
+  caret-color: var(--color-gold);
+}
+
+/* A row of pulli dots: the powder edge every field and rule is drawn with. */
+.powder-edge {
+  background-image: radial-gradient(circle, rgba(244, 239, 228, 0.55) 1.3px, transparent 1.8px);
+  background-size: 10px 4px;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+}
+.powder-edge:focus-within,
+.powder-edge.is-active {
+  background-image: radial-gradient(circle, var(--color-gold) 1.5px, transparent 2px);
+}
+.powder-edge :is(input, textarea):focus-visible {
+  /* the gold dots are the focus indicator */
+  outline: none;
+}
+.powder-edge.is-invalid {
+  background-image: radial-gradient(circle, var(--color-alert) 1.5px, transparent 2px);
+}
+
+.powder-ring {
+  box-shadow: inset 0 0 0 1.5px rgba(244, 239, 228, 0.38);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+.text-pretty {
+  text-wrap: pretty;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.rise-in {
+  animation: rise-in 0.9s var(--ease-out-expo) both;
+}
+
+@keyframes powder-run {
+  from {
+    background-position: 0 50%;
+  }
+  to {
+    background-position: 40px 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

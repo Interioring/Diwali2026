@@ -1,0 +1,485 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T14:15:34.535Z",
+  "title": "Design System: Diwali 2026 — Compile Your Light",
+  "extensions": {
+    "colorMeta": {
+      "oxide-950": {
+        "role": "neutral",
+        "displayName": "Oxide 950",
+        "canonical": "#140703",
+        "oklch": "oklch(14.8% 0.027 44.9)",
+        "tonalRamp": [
+          "#140703",
+          "#30211a",
+          "#4f3e36",
+          "#6f5d55",
+          "#917e75",
+          "#b4a097",
+          "#d9c4bb",
+          "#feeae1"
+        ]
+      },
+      "oxide-900": {
+        "role": "neutral",
+        "displayName": "Night Oxide",
+        "canonical": "#1c0a06",
+        "oklch": "oklch(17.2% 0.033 35.3)",
+        "tonalRamp": [
+          "#170603",
+          "#331f1a",
+          "#523c36",
+          "#735b55",
+          "#957c75",
+          "#b99e97",
+          "#dec2bb",
+          "#fee9e4"
+        ]
+      },
+      "oxide-800": {
+        "role": "neutral",
+        "displayName": "Oxide 800",
+        "canonical": "#2b110a",
+        "oklch": "oklch(21.6% 0.045 36.0)",
+        "tonalRamp": [
+          "#1a0401",
+          "#381d15",
+          "#573931",
+          "#79584f",
+          "#9b7970",
+          "#bf9c92",
+          "#e5bfb5",
+          "#fee9e4"
+        ]
+      },
+      "oxide-700": {
+        "role": "neutral",
+        "displayName": "Oxide 700",
+        "canonical": "#3d1810",
+        "oklch": "oklch(26.3% 0.060 33.6)",
+        "tonalRamp": [
+          "#1f0000",
+          "#3d1810",
+          "#5e362c",
+          "#80554b",
+          "#a3756b",
+          "#c8988d",
+          "#eebcb0",
+          "#fee9e4"
+        ]
+      },
+      "oxide-500": {
+        "role": "neutral",
+        "displayName": "Red Oxide",
+        "canonical": "#86341f",
+        "oklch": "oklch(43.7% 0.118 35.4)",
+        "tonalRamp": [
+          "#1f0000",
+          "#490a00",
+          "#73230d",
+          "#98442f",
+          "#be6650",
+          "#e48971",
+          "#fbb6a3",
+          "#fee9e4"
+        ]
+      },
+      "powder": {
+        "role": "neutral",
+        "displayName": "Rice Powder",
+        "canonical": "#f4efe4",
+        "oklch": "oklch(95.3% 0.016 86.4)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#28251c",
+          "#464239",
+          "#656157",
+          "#868278",
+          "#a9a59a",
+          "#cdc9be",
+          "#f3eee3"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Lamp-lit Ink",
+        "canonical": "#f3ece0",
+        "oklch": "oklch(94.5% 0.018 81.3)",
+        "tonalRamp": [
+          "#0f0a04",
+          "#29241b",
+          "#474138",
+          "#666056",
+          "#888177",
+          "#aba499",
+          "#cfc8bd",
+          "#f5eee2"
+        ]
+      },
+      "ink-dim": {
+        "role": "neutral",
+        "displayName": "Dusk Ink",
+        "canonical": "#d9c8b6",
+        "oklch": "oklch(84.2% 0.031 69.0)",
+        "tonalRamp": [
+          "#130800",
+          "#2f2214",
+          "#4d3f30",
+          "#6d5e4e",
+          "#8f7f6f",
+          "#b2a291",
+          "#d7c6b4",
+          "#fdebd9"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ash Ink",
+        "canonical": "#a8907c",
+        "oklch": "oklch(67.0% 0.041 61.8)",
+        "tonalRamp": [
+          "#170600",
+          "#33200f",
+          "#523d2b",
+          "#725c4a",
+          "#957d6a",
+          "#b8a08c",
+          "#ddc4af",
+          "#feebdb"
+        ]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Flame Gold",
+        "canonical": "#ffc95c",
+        "oklch": "oklch(86.4% 0.139 82.5)",
+        "tonalRamp": [
+          "#120900",
+          "#322200",
+          "#553e07",
+          "#7d5b00",
+          "#a77a00",
+          "#d09b23",
+          "#f5c052",
+          "#ffecca"
+        ]
+      },
+      "gold-deep": {
+        "role": "primary",
+        "displayName": "Deep Flame",
+        "canonical": "#f0a93a",
+        "oklch": "oklch(78.5% 0.146 74.0)",
+        "tonalRamp": [
+          "#140800",
+          "#352000",
+          "#5a3b04",
+          "#815814",
+          "#ac761d",
+          "#db951c",
+          "#fcbc5f",
+          "#feebd4"
+        ]
+      },
+      "rani": {
+        "role": "secondary",
+        "displayName": "Rani Pink",
+        "canonical": "#e2457f",
+        "oklch": "oklch(62.9% 0.198 2.2)",
+        "tonalRamp": [
+          "#1e0009",
+          "#4a0121",
+          "#790b3c",
+          "#b20358",
+          "#da3d79",
+          "#fb6e9c",
+          "#feb0c4",
+          "#fee8ed"
+        ]
+      },
+      "turmeric": {
+        "role": "secondary",
+        "displayName": "Turmeric",
+        "canonical": "#f4a930",
+        "oklch": "oklch(78.9% 0.153 73.8)",
+        "tonalRamp": [
+          "#150800",
+          "#342002",
+          "#593b0b",
+          "#83570b",
+          "#ae7511",
+          "#dd9400",
+          "#ffba58",
+          "#ffebd2"
+        ]
+      },
+      "leaf": {
+        "role": "secondary",
+        "displayName": "Leaf Green",
+        "canonical": "#43a86c",
+        "oklch": "oklch(65.7% 0.130 154.3)",
+        "tonalRamp": [
+          "#001004",
+          "#032e17",
+          "#00502a",
+          "#117441",
+          "#31995e",
+          "#59bd7f",
+          "#7fe2a3",
+          "#c7fed8"
+        ]
+      },
+      "alert": {
+        "role": "neutral",
+        "displayName": "Alert Coral",
+        "canonical": "#ff9a7a",
+        "oklch": "oklch(78.4% 0.130 38.3)",
+        "tonalRamp": [
+          "#1d0200",
+          "#451100",
+          "#732406",
+          "#9c4123",
+          "#c26345",
+          "#e98667",
+          "#fab7a1",
+          "#fee9e3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page h1 only (Eczar 700, 2.6rem → 3.1rem at sm)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Unavailable/missing-greeting h1."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Step labels."
+      },
+      "field": {
+        "displayName": "Field",
+        "purpose": "Name and sender input values."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Intro line and running copy, about 30ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Helper notes, counters, margin notes."
+      },
+      "numeral": {
+        "displayName": "Step Numeral",
+        "purpose": "Eczar numerals inside step rings."
+      },
+      "wordmark": {
+        "displayName": "Interioring Wordmark",
+        "purpose": "The word Interioring beside the official mark, 760 weight, 112% width."
+      }
+    },
+    "shadows": [
+      {
+        "name": "flame-glow",
+        "value": "0 10px 30px -8px rgba(255,170,60,0.55), 0 2px 6px rgba(20,6,2,0.4)",
+        "purpose": "Under the flame button only."
+      },
+      {
+        "name": "toast-drop",
+        "value": "0 8px 24px -6px rgba(0,0,0,0.5)",
+        "purpose": "Transient powder toast."
+      },
+      {
+        "name": "powder-ring",
+        "value": "inset 0 0 0 1.5px rgba(244,239,228,0.38)",
+        "purpose": "Stroke of powder buttons, unselected chips, resting step numerals (not elevation)."
+      },
+      {
+        "name": "gold-ring",
+        "value": "inset 0 0 0 1.5px #ffc95c",
+        "purpose": "Active step numeral."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Rise-in (0.9s, 14px lift with blur) and share-sheet entrance (700ms)."
+      },
+      {
+        "name": "control-state",
+        "value": "200ms ease-out",
+        "purpose": "Button colour and press (scale 0.98) transitions."
+      },
+      {
+        "name": "greeting-timeline",
+        "value": "14s",
+        "purpose": "Single renderer timeline: strike 0.15–0.95, dots 1.0–2.2, line 1.9–6.3, petals 5.5–7.1, side lamps 6.55–7.6, name 7.7–9.1, wish 8.9–10.0, sender 9.9–10.6, text out 11.2–11.8, closing 11.7–12.8. The synthesised score follows it."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "still frame at 10.6s",
+        "purpose": "prefers-reduced-motion shows the composed still; CSS animations collapse to 0.01ms."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      }
+    ],
+    "canvas": {
+      "logicalFrame": "1080x1920",
+      "durationSeconds": 14,
+      "stageSettle": 7.9,
+      "stillFrame": 10.6
+    },
+    "bindingCopy": {
+      "makersMark": "Made with love by Interioring",
+      "downloadAction": "Download video",
+      "senderSignature": "With love, <name> (optional)",
+      "musicToggle": "Play with music",
+      "closing": [
+        "Happy Diwali 2026",
+        "May your lives and homes shine brighter.",
+        "Interioring"
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "Flame Button",
+      "kind": "button",
+      "refersTo": "button-flame",
+      "description": "The single lit action on a screen.",
+      "html": "<button class=\"ds-btn-flame\">Light the greeting</button>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-btn-flame { font-family: 'Anek Latin', system-ui, sans-serif; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:56px; padding:0 28px; font-size:1.06rem; font-weight:600; border:none; border-radius:9999px; background:var(--color-gold,#ffc95c); color:var(--color-oxide-900,#1c0a06); box-shadow:0 10px 30px -8px rgba(255,170,60,0.55),0 2px 6px rgba(20,6,2,0.4); transition:transform .2s ease-out, background-color .2s ease-out; cursor:pointer; } .ds-btn-flame:hover { background:#ffd47a; } .ds-btn-flame:active { transform:scale(0.98); } .ds-btn-flame:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; }"
+    },
+    {
+      "name": "Powder Button",
+      "kind": "button",
+      "refersTo": "button-powder",
+      "description": "Secondary actions drawn as a powder ring on the floor.",
+      "html": "<button class=\"ds-btn-powder\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/></svg>Another wish</button>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-btn-powder { font-family: 'Anek Latin', system-ui, sans-serif; display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 20px; font-size:0.98rem; font-weight:600; border:none; border-radius:9999px; background:rgba(28,10,6,0.35); color:var(--color-ink,#f3ece0); box-shadow: inset 0 0 0 1.5px rgba(244,239,228,0.38); transition:background-color .2s ease-out, color .2s ease-out, transform .2s ease-out; cursor:pointer; } .ds-btn-powder:hover { background:rgba(61,24,16,0.7); color:var(--color-powder,#f4efe4); } .ds-btn-powder:active { transform:scale(0.98); } .ds-btn-powder:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Text-only tertiary action.",
+      "html": "<button class=\"ds-btn-quiet\">Start from blank</button>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-btn-quiet { font-family: 'Anek Latin', system-ui, sans-serif; min-height:44px; padding:0 12px; font-size:0.95rem; font-weight:600; border:none; background:none; border-radius:9999px; color:var(--color-ink-dim,#d9c8b6); text-underline-offset:4px; cursor:pointer; } .ds-btn-quiet:hover { color:var(--color-powder,#f4efe4); text-decoration:underline; } .ds-btn-quiet:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; }"
+    },
+    {
+      "name": "Powder-edge Field",
+      "kind": "input",
+      "refersTo": "field-powder-edge",
+      "description": "Boxless field whose only edge is a row of pulli dots; gold on focus, coral when invalid.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Their name</span><span class=\"ds-field-edge\"><input placeholder=\"Amma, Rohan, the Sharma family…\"></span></label>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-field { font-family: 'Anek Latin', system-ui, sans-serif; display:block; color:var(--color-ink,#f3ece0); } .ds-field-label { display:block; font-size:1.02rem; font-weight:600; margin-bottom:8px; } .ds-field-edge { display:block; padding-bottom:8px; background-image:radial-gradient(circle, rgba(244,239,228,0.55) 1.3px, transparent 1.8px); background-size:10px 4px; background-repeat:repeat-x; background-position:0 100%; } .ds-field-edge:focus-within { background-image:radial-gradient(circle, var(--color-gold,#ffc95c) 1.5px, transparent 2px); } .ds-field input { font-family: 'Anek Latin', system-ui, sans-serif; width:100%; border:none; background:transparent; font-size:1.35rem; font-weight:500; color:var(--color-powder,#f4efe4); caret-color:var(--color-gold,#ffc95c); outline:none; } .ds-field input::placeholder { color:rgba(168,144,124,0.8); }"
+    },
+    {
+      "name": "Wish Style Chip",
+      "kind": "chip",
+      "refersTo": "chip-style",
+      "description": "Radio pill; selected is a powder fill, never gold.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-checked=\"true\">Warm</button><button class=\"ds-chip\">Cheerful</button></div>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-chips { display:flex; gap:8px; } .ds-chip { font-family: 'Anek Latin', system-ui, sans-serif; min-height:40px; padding:0 16px; font-size:0.95rem; font-weight:500; border:none; border-radius:9999px; background:transparent; color:var(--color-ink-dim,#d9c8b6); box-shadow: inset 0 0 0 1.5px rgba(244,239,228,0.38); cursor:pointer; transition:color .2s; } .ds-chip:hover { color:var(--color-powder,#f4efe4); } .ds-chip[aria-checked=\"true\"] { background:var(--color-powder,#f4efe4); color:var(--color-oxide-900,#1c0a06); box-shadow:none; } .ds-chip:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; }"
+    },
+    {
+      "name": "Step Number",
+      "kind": "custom",
+      "refersTo": "step-number",
+      "description": "Eczar numeral in a powder ring; gold when it is the current step.",
+      "html": "<span class=\"ds-step ds-step-active\">1</span> <span class=\"ds-step\">2</span>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-step { display:inline-grid; place-items:center; width:28px; height:28px; border-radius:9999px; font-family:Eczar, Georgia, serif; font-size:0.95rem; font-weight:600; line-height:1; color:var(--color-ink-dim,#d9c8b6); box-shadow: inset 0 0 0 1.5px rgba(244,239,228,0.38); } .ds-step-active { color:var(--color-gold,#ffc95c); box-shadow:inset 0 0 0 1.5px var(--color-gold,#ffc95c); }"
+    },
+    {
+      "name": "Share Action",
+      "kind": "custom",
+      "refersTo": "share-action",
+      "description": "Icon-over-label tile in the share grid; wash only on hover.",
+      "html": "<button class=\"ds-share\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><polyline points=\"7 10 12 15 17 10\"/><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\"/></svg><span>Download video</span></button>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-share { font-family: 'Anek Latin', system-ui, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:64px; min-width:80px; padding:0 4px; border:none; border-radius:16px; background:transparent; color:var(--color-ink-dim,#d9c8b6); font-size:0.76rem; font-weight:500; line-height:1.25; cursor:pointer; transition:background-color .2s, color .2s; } .ds-share:hover { background:rgba(61,24,16,0.6); color:var(--color-powder,#f4efe4); } .ds-share:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; }"
+    },
+    {
+      "name": "Export Progress",
+      "kind": "custom",
+      "description": "A powder dot line overdrawn in gold as the video renders.",
+      "html": "<div class=\"ds-progress\"><div class=\"ds-progress-head\"><span>Drawing your video</span><span class=\"ds-progress-pct\">42%</span></div><div class=\"ds-progress-track\"><div class=\"ds-progress-fill\" style=\"width:42%\"></div></div></div>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-progress { font-family: 'Anek Latin', system-ui, sans-serif; color:var(--color-ink,#f3ece0); } .ds-progress-head { display:flex; justify-content:space-between; font-size:0.95rem; font-weight:600; margin-bottom:8px; } .ds-progress-pct { color:var(--color-gold,#ffc95c); font-variant-numeric:tabular-nums; font-weight:400; } .ds-progress-track { position:relative; height:12px; background-image:radial-gradient(circle, rgba(244,239,228,0.28) 1.4px, transparent 1.9px); background-size:10px 12px; } .ds-progress-fill { position:absolute; inset:0 auto 0 0; background-image:radial-gradient(circle, var(--color-gold,#ffc95c) 2px, transparent 2.6px); background-size:10px 12px; transition:width .2s; }"
+    },
+    {
+      "name": "Maker's Mark",
+      "kind": "custom",
+      "refersTo": "maker-mark",
+      "description": "Discreet 'Made with love by Interioring' link with the official house mark (use the shipped MARK_PATH from src/greeting/brand.ts; the preview shows the wording only).",
+      "html": "<a class=\"ds-maker\" href=\"https://www.interioring.com\">Made with love by <b>Interioring</b></a>",
+      "css": ":host, .ds-root { --color-oxide-900:#1c0a06; --color-oxide-700:#3d1810; --color-powder:#f4efe4; --color-ink:#f3ece0; --color-ink-dim:#d9c8b6; --color-ink-faint:#a8907c; --color-gold:#ffc95c; --color-alert:#ff9a7a; } .ds-maker { font-family: 'Anek Latin', system-ui, sans-serif; font-size:0.82rem; color:var(--color-ink-faint,#a8907c); text-decoration:none; transition:color .2s; } .ds-maker b { font-weight:760; font-stretch:112%; letter-spacing:-0.025em; } .ds-maker:hover { color:var(--color-ink,#f3ece0); } .ds-maker:focus-visible { outline:2px solid var(--color-gold,#ffc95c); outline-offset:3px; border-radius:6px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Threshold Kolam",
+    "overview": "Every screen is a polished red-oxide threshold floor at night. On it, one continuous rice-powder line weaves a pulli dot grid, powder petals bloom at the dots, and clay diyas light the floor with computed light. The greeting is the gift: the recipient's name is the brightest thing in the world, and every control steps back into the floor as powder rather than sitting on it as a card.\n\nThe world is drawn, not decorated. One canvas renderer, on a 1080×1920 logical frame driven by a single 14-second timeline, produces the live preview, the replay and the exported MP4. So whatever the page shows is what gets sent. States draw themselves: export progress is a dotted powder line filling with gold, and failures are short margin notes in alert coral, never modals or spinners. Numerals teach the three steps (name, wish, from).\n\nDensity is low and the type is large. The page is a single narrow column on a full-bleed floor. Ornament comes only from the world's own materials (powder, petals, clay, flame); the build ships no maroon-and-gold mandala, no clip-art diya, no bokeh sparkle and no CSS halos.",
+    "keyCharacteristics": [
+      "Full-bleed, dark red-oxide floor, lit by a multiply light map.",
+      "One continuous rice-powder kolam line on a pulli grid, with rani, turmeric and leaf powder petals.",
+      "Flame gold reserved for lit things.",
+      "Eczar for lettering, Anek Latin (Interioring's face) for UI.",
+      "Controls drawn with powder edges and powder rings, never cards.",
+      "One timeline for preview, replay, video and the synthesised score."
+    ],
+    "rules": [
+      {
+        "name": "The Lit Things Rule",
+        "body": "Gold marks only what is lit: flames, the recipient's name, and the single active control. A screen never shows two flame buttons, and a selected chip is powder, not gold.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pigment Rule",
+        "body": "Rani, turmeric and leaf live in the kolam's petals. They never fill buttons, text or chrome.",
+        "section": "colors"
+      },
+      {
+        "name": "The Computed Light Rule",
+        "body": "Light on the floor comes from the renderer's multiply light map: lamp radial gradients, a doorway spill from below, and a closing boost. DOM elements never fake glow with CSS halos.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Eczar writes names, festival lines and step numerals. Anek Latin writes everything you operate. Never set UI in Eczar or a greeting name in Anek.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Floor Rule",
+        "body": "Nothing sits above the floor except the flame action and the toast. Panels, cards and frosted sheets are not part of this world.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do derive every greeting surface from the single renderer timeline, so the preview, the replay and the video stay identical.",
+      "Do keep gold for lit things: flames, the recipient's name, one active control, and focus.",
+      "Do draw field edges and progress as pulli-dot powder lines, and controls as powder rings.",
+      "Do use the maker's mark copy exactly as \"Made with love by Interioring\", linked to https://www.interioring.com and kept discreet.",
+      "Do use the official Interioring mark path as shipped in `src/greeting/brand.ts`, filled with one colour.",
+      "Do label the export action \"Download video\" everywhere.",
+      "Do treat the sender name as optional and render it as \"With love, <name>\", with a Dusk Ink prefix and the name in Rice Powder.",
+      "Do keep music opt-in through \"Play with music\", and bake the same synthesised score into the MP4.",
+      "Do report failures as short margin notes in Alert Coral with a working fallback (the share link)."
+    ],
+    "donts": [
+      "Don't redraw, approximate or restyle the Interioring mark.",
+      "Don't use maroon grounds with gold mandalas, clip-art diyas, bokeh sparkle or any other e-card trope.",
+      "Don't add CSS glows or halos to suggest light. Light belongs to the canvas light map.",
+      "Don't put controls on cards, panels or frosted sheets.",
+      "Don't use rani, turmeric or leaf outside the kolam petals.",
+      "Don't show more than one flame button on a screen."
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "diwali2026",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "db:migrate:local": "wrangler d1 migrations apply diwali2026 --local",
+    "db:migrate:remote": "wrangler d1 migrations apply diwali2026 --remote",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "lucide-react": "^1.70.0",
+    "mp4-muxer": "^5.2.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.67.0",
+    "@cloudflare/workers-types": "^5.20261107.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "playwright-core": "^1.65.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.158.0"
+  }
+}
