@@ -7,3 +7,8 @@ dist
 .impeccable/review
 .impeccable/config.local.json
 .impeccable/questions
+
+# bulk greetings: personal contacts and phone numbers stay local
+bulk-out/
+contacts.csv
+*.contacts.csv

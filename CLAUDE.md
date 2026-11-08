@@ -23,6 +23,7 @@ npm run db:migrate:remote    # apply migrations to the production D1
 npm run deploy               # build + wrangler deploy
 node scripts/capture.mjs <baseUrl> <outDir>  # review screenshots; reads a SHOTS JSON env var (see the file)
 node scripts/og-image.mjs [baseUrl]          # regenerate public/og.png using the real renderer (dev server must be running)
+node scripts/bulk-greetings.mjs contacts.csv --from "Name"   # one greeting per row (name, phone, wish, from) + a WhatsApp Web send list in bulk-out/; --base http://localhost:5199 to test
 ```
 
 `vitest.config.ts` is deliberately separate from `vite.config.ts`. The Cloudflare plugin would otherwise boot workerd for the unit tests.
