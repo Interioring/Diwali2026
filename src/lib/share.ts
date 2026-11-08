@@ -75,16 +75,7 @@ export function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export function videoFilename(name: string): string {
-  const slug = name
-    .normalize("NFKD")
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .toLowerCase()
-    .slice(0, 30);
-  return `diwali-2026${slug ? `-for-${slug}` : ""}.mp4`;
-}
+export { videoFilename } from "../../shared/greeting.ts";
 
 /** WhatsApp, Instagram, Facebook in-app browsers often block downloads. */
 export function isInAppBrowser(): boolean {

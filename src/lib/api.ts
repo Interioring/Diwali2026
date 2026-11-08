@@ -40,3 +40,16 @@ export function fetchGreeting(id: string): Promise<Greeting> {
 export function reportGreeting(id: string): Promise<{ ok: boolean }> {
   return request(`/api/greetings/${encodeURIComponent(id)}/report`, { method: "POST", body: "{}" });
 }
+
+export interface FeedbackInput {
+  message: string;
+  name?: string;
+  business?: string;
+  contact?: string;
+  role: "sender" | "recipient";
+  sender?: string;
+}
+
+export function sendFeedback(input: FeedbackInput): Promise<{ ok: boolean }> {
+  return request("/api/feedback", { method: "POST", body: JSON.stringify(input) });
+}

@@ -1,24 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, Link2, MessageCircle, RotateCcw, Share2, PencilLine, Flag, Music2, VolumeX, UserPlus, SkipForward } from "lucide-react";
+import { Download, Link2, MessageCircle, MessageSquareHeart, RotateCcw, PencilLine, Flag, Music2, VolumeX, UserPlus, SkipForward } from "lucide-react";
 import { MusicPlayer, renderMusic } from "../audio/music.ts";
 import type { Greeting } from "../../shared/greeting.ts";
 import { CURATED_WISHES } from "../../shared/wishes.ts";
 import { randomSeed } from "../greeting/random.ts";
 import { SceneCanvas } from "../components/SceneCanvas.tsx";
 import { Button, LinkButton, MakerMark } from "../components/ui.tsx";
+import { FeedbackForm } from "../components/Feedback.tsx";
+import { PostMessageCard, PostMessageView } from "../components/PostMessage.tsx";
 // The sign-off on the canvas carries the Interioring lockup; the page adds no second mark.
 import { ApiError, fetchGreeting, reportGreeting } from "../lib/api.ts";
-import { track } from "../lib/analytics.ts";
+import { recordVisit, track } from "../lib/analytics.ts";
+import { trackedUrl } from "../../shared/links.ts";
+import { postMessage, recipientPostMessage } from "../../shared/messages.ts";
 import { navigate } from "../lib/router.ts";
 import { isMine } from "../lib/mine.ts";
 import {
-  canNativeShare,
   canShareFile,
   copyText,
   downloadBlob,
   greetingUrl,
   isInAppBrowser,
-  nativeShare,
   shareFile,
   videoFilename,
   whatsappHref,
@@ -36,7 +38,11 @@ type VideoState =
 
 // Room kept under the frame for the actions, sized to each role's tallest state
 // (the sender's "video ready" stack), so buttons never sit on the sign-off.
-const ACTIONS_HEIGHT = { sender: 238, recipient: 196 };
+// Both hold the message to post and end with the "Liked this?" feedback link.
+const ACTIONS_HEIGHT = { sender: 366, recipient: 332 };
+// The feedback form and the full post message take the actions' place; the film eases up to make room.
+const FEEDBACK_HEIGHT = 440;
+const MESSAGE_HEIGHT = { sender: 312, recipient: 250 };
 const SHOW_ACTIONS_AT = 11.8;
 // "Skip to send" lands just before the sign-off, so the gift still settles into place.
 const SKIP_TO = 11.4;
@@ -55,6 +61,8 @@ export function GreetingPage({ id }: { id: string }) {
   // the first one always plays in full.
   const skippable = mine && Boolean(navState?.skippable);
   const [confirmReport, setConfirmReport] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [toast, setToast] = useState("");
   const [video, setVideo] = useState<VideoState>({ kind: "idle" });
@@ -82,7 +90,9 @@ export function GreetingPage({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => {
-    if (load.kind === "ready" && !mine) track("recipient_view", { once: true });
+    if (load.kind !== "ready") return;
+    if (!mine) track("recipient_view", { once: true });
+    recordVisit("greeting", mine ? "sender" : "recipient");
   }, [load.kind, mine]);
 
   useEffect(() => {
@@ -162,6 +172,10 @@ export function GreetingPage({ id }: { id: string }) {
 
   const greeting = load.greeting;
   const url = greetingUrl(greeting.id);
+  // Room for whichever panel is showing: the open feedback form or message, else the role's actions.
+  const panelHeight = feedbackOpen ? FEEDBACK_HEIGHT : messageOpen ? (mine ? MESSAGE_HEIGHT.sender : MESSAGE_HEIGHT.recipient) : mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient;
+  // Each channel's link says where it was shared and by whom (the greeting's "With love" name).
+  const linkFor = (source: "whatsapp" | "copy") => trackedUrl(url, source, greeting.senderName);
 
   const startExport = async () => {
     if (exportMethod === null) {
@@ -198,14 +212,18 @@ export function GreetingPage({ id }: { id: string }) {
     say(isInAppBrowser() ? "If nothing downloads, open this page in Chrome or Safari." : "Downloading your video. Check your Downloads.");
   };
 
-  const copy = async () => {
-    track("share_copy");
-    say((await copyText(url)) ? "Link copied" : "Couldn't copy the link. Use WhatsApp or Share instead.");
+  // The words to post with the video (a group, a chat or Status), crediting the sender.
+  // The sender speaks to the recipient; a recipient posting it speaks for themselves.
+  const site = trackedUrl(`${window.location.origin}/`, "post", greeting.senderName);
+  const postText = mine ? postMessage(greeting.recipientName, site) : recipientPostMessage(greeting.senderName, site);
+  const copyPostMessage = async () => {
+    track("share_post_message");
+    say((await copyText(postText)) ? "Message copied. Paste it with the video." : "Couldn't copy the message.");
   };
 
-  const share = async () => {
-    track("share_native");
-    await nativeShare(url);
+  const copy = async () => {
+    track("share_copy");
+    say((await copyText(linkFor("copy"))) ? "Link copied" : "Couldn't copy the link. Use WhatsApp instead.");
   };
 
   const editThis = () => {
@@ -264,7 +282,7 @@ export function GreetingPage({ id }: { id: string }) {
       <SceneCanvas
         mode="play"
         data={sceneData}
-        reserveBottom={showActions ? (mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient) : skippable ? SKIP_ROOM : 0}
+        reserveBottom={showActions ? panelHeight : skippable ? SKIP_ROOM : 0}
         playKey={playKey}
         skipKey={skipKey}
         skipTo={SKIP_TO}
@@ -312,136 +330,156 @@ export function GreetingPage({ id }: { id: string }) {
         className={`absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(0.9rem,env(safe-area-inset-bottom))] transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${
           showActions ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
         }`}
-        style={{ minHeight: mine ? ACTIONS_HEIGHT.sender : ACTIONS_HEIGHT.recipient }}
+        style={{ minHeight: panelHeight }}
       >
-        <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-3">
-          {video.kind === "working" ? (
-            <ExportProgress progress={video.progress} onCancel={() => abortRef.current?.abort()} />
-          ) : video.kind === "ready" ? (
-            <div className="flex flex-col gap-2">
-              <Button variant="flame" onClick={() => saveVideo(video.file, video.blob)}>
-                <Download className="size-5" strokeWidth={2} aria-hidden="true" />
-                Save video
+        {feedbackOpen ? (
+          <div className="mx-auto w-full max-w-[28rem]">
+            <FeedbackForm role={mine ? "sender" : "recipient"} sender={greeting.senderName} onClose={() => setFeedbackOpen(false)} />
+          </div>
+        ) : messageOpen ? (
+          <div className="mx-auto w-full max-w-[28rem]">
+            <PostMessageView text={postText} onCopy={copyPostMessage} onClose={() => setMessageOpen(false)} />
+          </div>
+        ) : (
+          <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-3">
+            {video.kind === "working" ? (
+              <ExportProgress progress={video.progress} onCancel={() => abortRef.current?.abort()} />
+            ) : video.kind === "ready" ? (
+              <div className="flex flex-col gap-2">
+                <Button variant="flame" onClick={() => saveVideo(video.file, video.blob)}>
+                  <Download className="size-5" strokeWidth={2} aria-hidden="true" />
+                  Save video
+                </Button>
+                <p className="text-center text-[0.9rem] leading-snug text-ink-dim text-pretty">
+                  {video.withMusic ? "Music included. Share it from your gallery." : "Made without music. Share from your gallery."}
+                </p>
+              </div>
+            ) : mine ? (
+              <LinkButton
+                variant="flame"
+                href={whatsappHref(linkFor("whatsapp"))}
+                target="_blank"
+                rel="noopener"
+                onClick={() => track("share_whatsapp")}
+              >
+                <MessageCircle className="size-5" strokeWidth={2} aria-hidden="true" />
+                Send on WhatsApp
+              </LinkButton>
+            ) : (
+              <Button variant="flame" onClick={greeting.senderName ? sendBack : () => makeOwn()} className="min-w-0">
+                <span className="truncate">{greeting.senderName ? `Send one back to ${greeting.senderName}` : "Make one for someone"}</span>
               </Button>
-              <p className="text-center text-[0.9rem] leading-snug text-ink-dim text-pretty">
-                {video.withMusic ? "Music included. Share it from your gallery." : "Made without music. Share from your gallery."}
+            )}
+
+            {(video.kind === "failed" || video.kind === "unsupported") && (
+              <p role="alert" className="text-center text-[0.88rem] leading-snug text-alert text-pretty">
+                {video.kind === "failed"
+                  ? `${video.message} The link below works everywhere.`
+                  : isInAppBrowser()
+                    ? "Videos can't be made inside this app's browser. Open the link in Chrome or Safari, or share the link."
+                    : "This browser can't make the video. Share the link instead: it plays the same greeting."}
               </p>
+            )}
+
+            {video.kind !== "working" && <PostMessageCard text={postText} onCopy={copyPostMessage} onOpen={() => setMessageOpen(true)} />}
+
+            <div className="grid auto-cols-fr grid-flow-col gap-1.5">
+              {video.kind !== "ready" && video.kind !== "working" && (
+                <IconAction label={video.kind === "failed" ? "Try download again" : "Download video"} onClick={startExport}>
+                  <Download className="size-5" strokeWidth={1.8} aria-hidden="true" />
+                </IconAction>
+              )}
+              {!mine || video.kind === "ready" || video.kind === "working" ? (
+                <IconAction label="WhatsApp" href={whatsappHref(linkFor("whatsapp"))} onClick={() => track("share_whatsapp")}>
+                  <MessageCircle className="size-5" strokeWidth={1.8} aria-hidden="true" />
+                </IconAction>
+              ) : null}
+              <IconAction label="Copy link" onClick={copy}>
+                <Link2 className="size-5" strokeWidth={1.8} aria-hidden="true" />
+              </IconAction>
+              {mine && video.kind !== "ready" && (
+                <IconAction label="Edit" onClick={editThis}>
+                  <PencilLine className="size-5" strokeWidth={1.8} aria-hidden="true" />
+                </IconAction>
+              )}
             </div>
-          ) : mine ? (
-            <LinkButton
-              variant="flame"
-              href={whatsappHref(url)}
-              target="_blank"
-              rel="noopener"
-              onClick={() => track("share_whatsapp")}
-            >
-              <MessageCircle className="size-5" strokeWidth={2} aria-hidden="true" />
-              Send on WhatsApp
-            </LinkButton>
-          ) : (
-            <Button variant="flame" onClick={greeting.senderName ? sendBack : () => makeOwn()} className="min-w-0">
-              <span className="truncate">{greeting.senderName ? `Send one back to ${greeting.senderName}` : "Make one for someone"}</span>
-            </Button>
-          )}
 
-          {(video.kind === "failed" || video.kind === "unsupported") && (
-            <p role="alert" className="text-center text-[0.88rem] leading-snug text-alert text-pretty">
-              {video.kind === "failed"
-                ? `${video.message} The link below works everywhere.`
-                : isInAppBrowser()
-                  ? "Videos can't be made inside this app's browser. Open the link in Chrome or Safari, or share the link."
-                  : "This browser can't make the video. Share the link instead: it plays the same greeting."}
-            </p>
-          )}
+            {mine && video.kind !== "working" && (
+              <Button onClick={makeAnother}>
+                <UserPlus className="size-[1.1rem]" strokeWidth={1.8} aria-hidden="true" />
+                Make one for someone else
+              </Button>
+            )}
 
-          <div className="grid grid-cols-4 gap-1.5">
-            {video.kind !== "ready" && video.kind !== "working" && (
-              <IconAction label={video.kind === "failed" ? "Try download again" : "Download video"} onClick={startExport}>
-                <Download className="size-5" strokeWidth={1.8} aria-hidden="true" />
-              </IconAction>
+            {!mine && video.kind !== "working" && video.kind !== "ready" && (
+              <div className="flex min-h-11 items-center justify-end gap-1 text-[0.8rem]">
+                {greeting.senderName && !confirmReport && (
+                  <button
+                    type="button"
+                    onClick={() => makeOwn()}
+                    className="mr-auto inline-flex min-h-11 items-center gap-1 text-[0.9rem] font-medium text-ink-dim underline-offset-4 hover:text-powder hover:underline"
+                  >
+                    <UserPlus className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                    Make one for someone else
+                  </button>
+                )}
+                {confirmReport && !reported ? (
+                  // Hiding is immediate and for everyone, so it takes a second, deliberate tap.
+                  <>
+                    <span className="mr-1 text-ink-dim">Hide this greeting for everyone?</span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setReported(true);
+                        setConfirmReport(false);
+                        try {
+                          await reportGreeting(greeting.id);
+                          say("Reported. This greeting is now hidden.");
+                        } catch {
+                          setReported(false);
+                          say("Couldn't send the report. Try again.");
+                        }
+                      }}
+                      className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-alert hover:text-powder"
+                    >
+                      Hide
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmReport(false)}
+                      className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-ink hover:text-powder"
+                    >
+                      Keep
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={reported}
+                    onClick={() => setConfirmReport(true)}
+                    className="inline-flex min-h-11 items-center gap-1 text-ink-faint hover:text-ink disabled:opacity-60"
+                  >
+                    <Flag className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                    {reported ? "Reported" : "Report"}
+                  </button>
+                )}
+              </div>
             )}
-            {!mine || video.kind === "ready" || video.kind === "working" ? (
-              <IconAction label="WhatsApp" href={whatsappHref(url)} onClick={() => track("share_whatsapp")}>
-                <MessageCircle className="size-5" strokeWidth={1.8} aria-hidden="true" />
-              </IconAction>
-            ) : null}
-            <IconAction label="Copy link" onClick={copy}>
-              <Link2 className="size-5" strokeWidth={1.8} aria-hidden="true" />
-            </IconAction>
-            {canNativeShare() && (
-              <IconAction label="Share" onClick={share}>
-                <Share2 className="size-5" strokeWidth={1.8} aria-hidden="true" />
-              </IconAction>
-            )}
-            {mine && video.kind !== "ready" && (
-              <IconAction label="Edit" onClick={editThis}>
-                <PencilLine className="size-5" strokeWidth={1.8} aria-hidden="true" />
-              </IconAction>
+
+            {video.kind !== "working" && (
+              <button
+                type="button"
+                onClick={() => setFeedbackOpen(true)}
+                className="mx-auto inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-[0.9rem] text-ink-dim underline-offset-4 hover:text-powder hover:underline"
+              >
+                <MessageSquareHeart className="size-4 shrink-0" strokeWidth={1.8} aria-hidden="true" />
+                {/* One line on every phone: the offer itself is in the form. */}
+                <span className="hidden min-[380px]:inline">Liked this? Tell us, and get one for your business</span>
+                <span className="min-[380px]:hidden">Liked this? Tell us.</span>
+              </button>
             )}
           </div>
-
-          {mine && video.kind !== "working" && (
-            <Button onClick={makeAnother}>
-              <UserPlus className="size-[1.1rem]" strokeWidth={1.8} aria-hidden="true" />
-              Make one for someone else
-            </Button>
-          )}
-
-          {!mine && video.kind !== "working" && video.kind !== "ready" && (
-            <div className="flex min-h-11 items-center justify-end gap-1 text-[0.8rem]">
-              {greeting.senderName && !confirmReport && (
-                <button
-                  type="button"
-                  onClick={() => makeOwn()}
-                  className="mr-auto inline-flex min-h-11 items-center gap-1 text-[0.9rem] font-medium text-ink-dim underline-offset-4 hover:text-powder hover:underline"
-                >
-                  <UserPlus className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
-                  Make one for someone else
-                </button>
-              )}
-              {confirmReport && !reported ? (
-                // Hiding is immediate and for everyone, so it takes a second, deliberate tap.
-                <>
-                  <span className="mr-1 text-ink-dim">Hide this greeting for everyone?</span>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setReported(true);
-                      setConfirmReport(false);
-                      try {
-                        await reportGreeting(greeting.id);
-                        say("Reported. This greeting is now hidden.");
-                      } catch {
-                        setReported(false);
-                        say("Couldn't send the report. Try again.");
-                      }
-                    }}
-                    className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-alert hover:text-powder"
-                  >
-                    Hide
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmReport(false)}
-                    className="inline-flex min-h-11 items-center rounded-full px-3 font-semibold text-ink hover:text-powder"
-                  >
-                    Keep
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  disabled={reported}
-                  onClick={() => setConfirmReport(true)}
-                  className="inline-flex min-h-11 items-center gap-1 text-ink-faint hover:text-ink disabled:opacity-60"
-                >
-                  <Flag className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
-                  {reported ? "Reported" : "Report"}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        )}
       </section>
 
       <div aria-live="polite" className="pointer-events-none absolute inset-x-0 top-[calc(max(0.75rem,env(safe-area-inset-top))+3.5rem)] z-20 flex justify-center">

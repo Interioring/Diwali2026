@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Usage · Diwali 2026</title>
+<link rel="icon" href="/favicon.svg" />
+<style>
+  :root {
+    --bg: #1c0a06; --panel: #2a100a; --raise: #36160e; --line: rgba(244, 239, 228, 0.12); --line-strong: rgba(244, 239, 228, 0.26);
+    --ink: #f3ece0; --dim: #d9c8b6; --faint: #b9a28e; --gold: #ffc95c; --bar: #c27d3d; --bar-hover: #e0a056; --bad: #ff8f7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 16px 56px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  h1 { font: 700 1.5rem/1.1 Georgia, serif; margin: 0 auto 0 0; }
+  .range { display: inline-flex; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--line-strong); padding: 3px; }
+  .range button { border: 0; background: none; border-radius: 999px; padding: 6px 14px; cursor: pointer; color: var(--dim); font-size: 0.92rem; }
+  .range button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 650; }
+  .updated { color: var(--faint); font-size: 0.85rem; }
+
+  .lead { display: grid; grid-template-columns: minmax(220px, 1fr) 3fr; gap: 16px; margin-top: 20px; }
+  @media (max-width: 860px) { .lead { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
+  .hero-num { font-size: clamp(3rem, 7vw, 4.2rem); font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin: 8px 0 6px; }
+  .label { color: var(--dim); font-size: 0.92rem; }
+  .sub { color: var(--faint); font-size: 0.85rem; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+  .tile .v { font-size: 1.9rem; font-weight: 700; line-height: 1.1; margin-top: 4px; }
+
+  h2 { font-size: 1rem; font-weight: 650; margin: 0 0 12px; color: var(--ink); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  h2 small { color: var(--faint); font-weight: 400; font-size: 0.85rem; }
+  section { margin-top: 16px; }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: 240px; overflow: visible; }
+  .chart .grid line { stroke: var(--line); }
+  .chart .tick { fill: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .chart .bar { fill: var(--bar); pointer-events: none; } /* the hover area behind it takes the pointer */
+  .chart .hit:hover + .bar, .chart .bar.on { fill: var(--bar-hover); }
+  .tip { position: absolute; pointer-events: none; background: var(--raise); border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 10px; font-size: 0.85rem; min-width: 150px; box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.7); transform: translate(-50%, -100%); white-space: nowrap; }
+  .tip b { display: block; margin-bottom: 2px; }
+  .tip span { display: flex; justify-content: space-between; gap: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--dim); font-size: 0.9rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9rem; }
+  th, td { text-align: right; padding: 6px 8px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--faint); font-weight: 500; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  ol.rank { list-style: none; margin: 0; padding: 0; }
+  ol.rank li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 0.92rem; }
+  ol.rank li:first-child { border-top: 0; }
+  .rk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rk-val { font-variant-numeric: tabular-nums; text-align: right; }
+  .rk-val small { color: var(--faint); margin-left: 6px; }
+  .rk-bar { grid-column: 1 / -1; height: 4px; border-radius: 0 2px 2px 0; background: var(--bar); }
+  .empty { color: var(--faint); font-size: 0.9rem; }
+  ol.feedback { list-style: none; margin: 0; padding: 0; }
+  ol.feedback li { padding: 12px 0; border-top: 1px solid var(--line); }
+  ol.feedback li:first-child { border-top: 0; }
+  .fb-msg { margin: 0 0 6px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 75ch; }
+  .fb-meta { color: var(--faint); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .fb-meta b { color: var(--gold); font-weight: 650; }
+  .gate { max-width: 420px; margin: 12vh auto 0; }
+  .gate input { width: 100%; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 12px; padding: 12px 14px; margin: 14px 0 12px; }
+  .btn { border: 0; border-radius: 999px; min-height: 44px; padding: 0 20px; background: var(--gold); color: var(--bg); font-weight: 650; cursor: pointer; }
+  .error { color: var(--bad); font-weight: 600; }
+  .foot { color: var(--faint); font-size: 0.82rem; margin-top: 22px; max-width: 80ch; }
+  .linkbtn { background: none; border: 0; padding: 6px 0; color: var(--faint); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 0.85rem; }
+  .linkbtn:hover { color: var(--ink); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="gate panel" id="gate" hidden>
+    <h1>Usage</h1>
+    <p class="label">Enter the stats key to see how Diwali 2026 is being used.</p>
+    <input id="key" type="password" autocomplete="current-password" aria-label="Stats key" placeholder="Stats key" required />
+    <p class="error" id="gate-error" role="alert"></p>
+    <button class="btn" type="submit">Show usage</button>
+  </form>
+
+  <div id="app" hidden>
+    <header>
+      <h1>Diwali 2026 · Usage</h1>
+      <div class="range" role="group" aria-label="Period">
+        <button type="button" data-days="1">Today</button>
+        <button type="button" data-days="7">7 days</button>
+        <button type="button" data-days="30">30 days</button>
+        <button type="button" data-days="90">90 days</button>
+      </div>
+      <span class="updated" id="updated" aria-live="polite"></span>
+    </header>
+
+    <div class="lead">
+      <div class="panel">
+        <div class="label">People who visited</div>
+        <div class="hero-num" id="hero">–</div>
+        <div class="sub" id="hero-sub"></div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+
+    <section class="panel">
+      <h2>Visits per day <small id="chart-note"></small></h2>
+      <div class="chart" id="chart"></div>
+      <details><summary>Show as a table</summary><div id="day-table"></div></details>
+    </section>
+
+    <div class="grid2">
+      <section class="panel"><h2>From visit to share <small>actions started</small></h2><ol class="rank" id="funnel"></ol></section>
+      <section class="panel"><h2>Countries <small>visits · visitors</small></h2><ol class="rank" id="countries"></ol></section>
+      <section class="panel"><h2>Cities</h2><ol class="rank" id="cities"></ol></section>
+      <section class="panel"><h2>Devices</h2><ol class="rank" id="devices"></ol></section>
+      <section class="panel"><h2>Browsers</h2><ol class="rank" id="browsers"></ol></section>
+      <section class="panel"><h2>Systems</h2><ol class="rank" id="systems"></ol></section>
+      <section class="panel"><h2>Came from <small>referring site</small></h2><ol class="rank" id="referrers"></ol></section>
+      <section class="panel"><h2>Pages</h2><ol class="rank" id="pages"></ol></section>
+      <section class="panel"><h2>Channels <small>utm_source</small></h2><ol class="rank" id="sources"></ol></section>
+      <section class="panel"><h2>Senders who brought visits <small>utm_sender</small></h2><ol class="rank" id="senders"></ol></section>
+      <section class="panel"><h2>Senders by greetings made <small>“With love” name</small></h2><ol class="rank" id="senderGreetings"></ol></section>
+      <section class="panel"><h2>Languages</h2><ol class="rank" id="languages"></ol></section>
+    </div>
+
+    <section class="panel">
+      <h2>Feedback <small id="feedback-count"></small></h2>
+      <ol class="feedback" id="feedback"></ol>
+    </section>
+
+    <p class="foot">Days are India time. A visit is one page view. Visitors are counted once per day: nothing identifies a visitor, no IP addresses or cookies are stored, and visits from people who ask browsers not to track them (Global Privacy Control or Do Not Track) aren't recorded. Automated browsers, including the greeting bot's video maker, are left out. Location comes from Cloudflare and is approximate. Links people share carry utm_source (the channel) and utm_sender (the sender's “With love” name), which is how visits are credited to senders. Feedback contact details are only what people chose to type in.</p>
+    <p><button class="linkbtn" id="forget" type="button">Forget the key on this device</button></p>
+  </div>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(function () {
+  var KEY = "diwali-stats-key", DAYS = "diwali-stats-days";
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Number(n || 0).toLocaleString("en-IN"); };
+  var days = Number(store.get(DAYS)) || 7;
+  var timer = null;
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  function showGate(msg) {
+    $("app").hidden = true; $("gate").hidden = false; $("gate-error").textContent = msg || ""; $("key").focus();
+  }
+
+  function load() {
+    var key = store.get(KEY);
+    if (!key) return showGate("");
+    fetch("/api/stats?days=" + days, { headers: { authorization: "Bearer " + key } })
+      .then(function (res) {
+        if (res.status === 401) { store.del(KEY); throw new Error("That key didn't work."); }
+        if (res.status === 503) throw new Error("The stats key isn't set on the server yet (STATS_KEY).");
+        if (!res.ok) throw new Error("Couldn't load the numbers (" + res.status + ").");
+        return res.json();
+      })
+      .then(render)
+      .catch(function (e) { showGate(e.message); });
+  }
+
+  function render(d) {
+    $("gate").hidden = true; $("app").hidden = false;
+    var buttons = document.querySelectorAll(".range button[data-days]");
+    for (var i = 0; i < buttons.length; i++) buttons[i].setAttribute("aria-pressed", String(Number(buttons[i].dataset.days) === d.days));
+    var t = d.totals;
+    var period = d.days === 1 ? "today" : "in the last " + d.days + " days";
+    $("hero").textContent = fmt(t.visitors);
+    $("hero-sub").textContent = (d.days === 1 ? "Today" : "Last " + d.days + " days") + " · counted once a day each";
+    var tiles = [
+      ["Page views", t.visits, fmt(t.visits_all) + " all time"],
+      ["Greetings made", t.greetings, fmt(t.greetings_all) + " all time"],
+      ["Videos made", t.videos, "downloads from the page"],
+      ["Shares started", t.shares, "WhatsApp, copy, share, save"],
+      ["Recipients opened", t.recipientViews, "greeting links opened"],
+    ];
+    var box = $("tiles"); box.replaceChildren();
+    tiles.forEach(function (x) {
+      var tile = el("div", "tile");
+      tile.append(el("div", "label", x[0]), el("div", "v", fmt(x[1])), el("div", "sub", x[2]));
+      box.append(tile);
+    });
+    $("updated").textContent = "Updated " + new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " · today " + fmt(t.visitors_today) + " visitors, " + fmt(t.greetings_today) + " greetings";
+    drawChart(d.series);
+    dayTable(d.series);
+    rank("funnel", d.funnel.map(function (f) { return { key: f[0], visits: f[1] }; }), false);
+    var names = null;
+    try { names = new Intl.DisplayNames(["en"], { type: "region" }); } catch (e) {}
+    d.breakdowns.countries.forEach(function (r) { if (r.key && names) { try { r.key = names.of(r.key) || r.key; } catch (e) {} } });
+    d.breakdowns.devices.forEach(function (r) { if (r.key) r.key = r.key[0].toUpperCase() + r.key.slice(1); });
+    ["countries", "cities", "devices", "browsers", "systems", "referrers", "pages", "sources", "languages", "senders"].forEach(function (k) {
+      rank(k, d.breakdowns[k], true, k === "referrers" ? "Direct, or the app hid it" : k === "sources" ? "No tag" : k === "senders" ? "Untagged link" : "Unknown");
+    });
+    rank("senderGreetings", d.breakdowns.senderGreetings, false, "No name");
+    feedback(d.feedback || []);
+    $("chart-note").textContent = period;
+  }
+
+  function rank(id, rows, withVisitors, unknown) {
+    var list = $(id); list.replaceChildren();
+    if (!rows.length || rows.every(function (r) { return !r.visits; })) { list.append(el("li", "empty", "No data yet.")); return; }
+    var max = Math.max.apply(null, rows.map(function (r) { return r.visits; })) || 1;
+    rows.forEach(function (r) {
+      var li = el("li");
+      var name = el("span", "rk-name", r.key == null || r.key === "" ? unknown || "Unknown" : r.key);
+      name.title = name.textContent;
+      var val = el("span", "rk-val", fmt(r.visits));
+      if (withVisitors) val.append(el("small", null, fmt(r.visitors)));
+      var bar = el("span", "rk-bar"); bar.style.width = Math.max(1, (r.visits / max) * 100) + "%";
+      li.append(name, val, bar);
+      list.append(li);
+    });
+  }
+
+  function feedback(items) {
+    var list = $("feedback"); list.replaceChildren();
+    $("feedback-count").textContent = items.length ? items.length + (items.length === 100 ? "+ (latest 100)" : "") : "";
+    if (!items.length) { list.append(el("li", "empty", "No feedback yet.")); return; }
+    items.forEach(function (f) {
+      var li = el("li");
+      if (f.message) li.append(el("p", "fb-msg", f.message));
+      var meta = el("div", "fb-meta");
+      if (f.contact) meta.append(el("b", null, "Wants one: " + f.contact));
+      var who = [f.name, f.business].filter(Boolean).join(", ");
+      if (who) meta.append(el("span", null, who));
+      meta.append(el("span", null, new Date(f.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })));
+      var where = [f.city, f.country].filter(Boolean).join(", ");
+      if (where) meta.append(el("span", null, where));
+      if (f.role) meta.append(el("span", null, f.role === "sender" ? "made a greeting" : "received one"));
+      if (f.utm_sender) meta.append(el("span", null, "via " + f.utm_sender));
+      li.append(meta);
+      list.append(li);
+    });
+  }
+
+  function niceMax(v) {
+    if (v <= 4) return 4;
+    var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+  }
+
+  function drawChart(series) {
+    var box = $("chart"); box.replaceChildren();
+    var W = box.clientWidth || 800, H = 240, L = 36, B = 22, T = 8;
+    var max = niceMax(Math.max.apply(null, series.map(function (s) { return s.visits; })));
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Visits per day; the table below has the numbers.");
+    function make(tag, attrs, parent) { var n = document.createElementNS(ns, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); (parent || svg).append(n); return n; }
+    var grid = make("g", { class: "grid" });
+    var y = function (v) { return T + (H - T - B) * (1 - v / max); };
+    for (var i = 0; i <= 4; i++) {
+      var v = (max / 4) * i;
+      make("line", { x1: L, x2: W, y1: y(v), y2: y(v) }, grid);
+      var tk = make("text", { class: "tick", x: L - 8, y: y(v) + 4, "text-anchor": "end" });
+      tk.textContent = fmt(v);
+    }
+    var slot = (W - L) / series.length, bw = Math.min(24, slot * 0.62);
+    var every = Math.ceil(series.length / Math.max(1, Math.floor((W - L) / 56)));
+    var tip = $("tip");
+    series.forEach(function (s, i) {
+      var cx = L + slot * i + slot / 2, top = y(s.visits), h = Math.max(0, y(0) - top);
+      var hit = make("rect", { class: "hit", x: L + slot * i, y: T, width: slot, height: H - T - B, fill: "transparent" });
+      var r = Math.min(4, h, bw / 2), x0 = cx - bw / 2, x1 = cx + bw / 2, base = y(0);
+      var bar = make("path", { class: "bar", d: h <= 0 ? "" : "M" + x0 + "," + base + "V" + (top + r) + "Q" + x0 + "," + top + " " + (x0 + r) + "," + top + "H" + (x1 - r) + "Q" + x1 + "," + top + " " + x1 + "," + (top + r) + "V" + base + "Z" });
+      if (i % every === 0 || i === series.length - 1) {
+        var lab = make("text", { class: "tick", x: cx, y: H - 6, "text-anchor": "middle" });
+        lab.textContent = s.day.slice(8) === "01" || i === 0 ? s.day.slice(5).replace("-", "/") : String(Number(s.day.slice(8)));
+      }
+      function show() {
+        bar.classList.add("on");
+        tip.replaceChildren();
+        tip.append(el("b", null, new Date(s.day + "T12:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })));
+        [["Page views", s.visits], ["Visitors", s.visitors], ["Greetings made", s.greetings], ["Videos made", s.videos]].forEach(function (p) {
+          var row = el("span"); row.append(el("i", null, p[0]), el("strong", null, fmt(p[1]))); row.firstChild.style.fontStyle = "normal"; tip.append(row);
+        });
+        var rect = box.getBoundingClientRect();
+        tip.hidden = false;
+        var half = tip.offsetWidth / 2, x = rect.left + (cx / W) * rect.width;
+        x = Math.min(Math.max(x, rect.left + half), rect.right - half); // stay inside the panel
+        tip.style.left = window.scrollX + x + "px";
+        tip.style.top = rect.top + window.scrollY + (Math.min(top, y(0) - 4) / H) * rect.height - 8 + "px";
+        tip.hidden = false;
+      }
+      function hide() { bar.classList.remove("on"); tip.hidden = true; }
+      hit.addEventListener("mouseenter", show); hit.addEventListener("mouseleave", hide);
+      hit.addEventListener("touchstart", show, { passive: true });
+    });
+    box.append(svg);
+  }
+
+  function dayTable(series) {
+    var table = el("table");
+    var head = el("tr");
+    ["Day", "Page views", "Visitors", "Home", "Greeting pages", "Greetings made", "Videos made"].forEach(function (h) { head.append(el("th", null, h)); });
+    table.append(head);
+    series.slice().reverse().forEach(function (s) {
+      var tr = el("tr");
+      [s.day, s.visits, s.visitors, s.home, s.greeting, s.greetings, s.videos].forEach(function (v, i) { tr.append(el("td", null, i ? fmt(v) : v)); });
+      table.append(tr);
+    });
+    $("day-table").replaceChildren(table);
+  }
+
+  $("gate").addEventListener("submit", function (e) {
+    e.preventDefault();
+    store.set(KEY, $("key").value.trim());
+    load();
+  });
+  document.querySelectorAll(".range button[data-days]").forEach(function (b) {
+    b.addEventListener("click", function () { days = Number(b.dataset.days); store.set(DAYS, String(days)); load(); });
+  });
+  $("forget").addEventListener("click", function () { store.del(KEY); showGate("Key forgotten on this device."); });
+  window.addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(load, 300); });
+  setInterval(load, 60000);
+  load();
+})();
+</script>
+</body>
+</html>

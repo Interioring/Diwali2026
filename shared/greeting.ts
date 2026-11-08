@@ -69,3 +69,15 @@ export function validateGreetingInput(body: unknown): ValidationResult {
 }
 
 export const ID_PATTERN = /^[A-Za-z0-9]{12}$/;
+
+/** The MP4's file name, the same on the page and from the Worker's /v/ links. */
+export function videoFilename(name: string): string {
+  const slug = name
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase()
+    .slice(0, 30);
+  return `diwali-2026${slug ? `-for-${slug}` : ""}.mp4`;
+}

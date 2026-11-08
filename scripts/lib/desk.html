@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Send desk · Diwali 2026</title>
+<link rel="icon" href="data:," />
+<style>
+  :root {
+    --bg: #1c0a06; --panel: #2a100a; --raise: #36160e; --line: rgba(244, 239, 228, 0.14); --line-strong: rgba(244, 239, 228, 0.28);
+    --ink: #f3ece0; --dim: #d9c8b6; --faint: #b9a28e; --gold: #ffc95c;
+    --ok: #7fd49b; --warn: #f2b35b; --bad: #ff8f7a; --info: #9fd0ff;
+    --serif: Georgia, "Iowan Old Style", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 48px; }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  header.top h1 { font: 700 1.45rem/1.1 var(--serif); margin: 0; margin-right: auto; }
+  .counts { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--dim); font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+  .counts b { color: var(--ink); font-weight: 650; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 12px; font-size: 0.9rem; font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.off { color: var(--faint); }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 22px; margin-top: 18px; align-items: start; }
+  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 26px 28px 24px; }
+  .eyebrow { color: var(--faint); font-size: 0.88rem; font-variant-numeric: tabular-nums; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .who { font: 700 clamp(1.7rem, 3.2vw, 2.4rem)/1.12 var(--serif); margin: 10px 0 6px; overflow-wrap: anywhere; }
+  .phone { font-size: 1.05rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .phone.problem { color: var(--warn); }
+  .suggest { margin-top: 14px; color: var(--dim); }
+  .suggest b { color: var(--gold); font-weight: 650; }
+  .state { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--raise); color: var(--dim); }
+  .state b { color: var(--ink); }
+  .actions { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .btn { border: 0; border-radius: 999px; min-height: 48px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-weight: 600; text-decoration: none; }
+  .btn kbd { font: 600 0.75rem/1 system-ui; padding: 3px 6px; border-radius: 6px; background: rgba(0,0,0,0.18); }
+  .btn.primary { background: var(--gold); color: #1c0a06; }
+  .btn.primary kbd { background: rgba(28, 10, 6, 0.12); }
+  .btn.quiet { background: transparent; color: var(--dim); box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+  .btn.quiet:hover { color: var(--ink); }
+  .btn.small { min-height: 36px; padding: 0 14px; font-size: 0.88rem; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .grow { flex: 1; }
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .link { background: none; border: 0; color: var(--dim); cursor: pointer; padding: 6px 0; text-decoration: underline; text-underline-offset: 3px; }
+  .link:hover { color: var(--ink); }
+
+  .search { position: relative; }
+  .search input { width: min(320px, 60vw); background: var(--bg); border: 1px solid var(--line-strong); border-radius: 999px; padding: 9px 14px; }
+  .results { position: absolute; right: 0; top: calc(100% + 6px); width: min(360px, 80vw); background: var(--raise); border: 1px solid var(--line-strong); border-radius: 14px; padding: 6px; z-index: 5; box-shadow: 0 18px 40px -16px rgba(0,0,0,0.6); }
+  .results button { display: flex; width: 100%; justify-content: space-between; gap: 10px; text-align: left; background: none; border: 0; border-radius: 10px; padding: 9px 10px; cursor: pointer; }
+  .results button:hover, .results button:focus-visible { background: rgba(255,255,255,0.06); }
+  .results small { color: var(--faint); }
+
+  /* compose */
+  .compose { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; margin-top: 8px; }
+  @media (max-width: 760px) { .compose { grid-template-columns: 1fr; } }
+  .field { margin-top: 16px; }
+  .field label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 6px; }
+  .field label small { font-weight: 400; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .field label small.over { color: var(--bad); }
+  .field input, .field textarea { width: 100%; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 12px; padding: 11px 13px; resize: vertical; }
+  .field input:focus, .field textarea:focus { border-color: var(--gold); outline: none; }
+  .field .hint { color: var(--faint); font-size: 0.85rem; margin-top: 6px; display: flex; justify-content: space-between; gap: 10px; }
+  .error { color: var(--bad); margin-top: 14px; font-weight: 600; }
+
+  .phone-mock { background: #efeae2; border-radius: 18px; padding: 14px 10px; color: #111b21; font-size: 14px; line-height: 1.38; align-self: start; }
+  .mock-title { font-size: 12px; color: #54656f; text-align: center; margin-bottom: 10px; }
+  .bubble { margin-left: 18%; background: #d9fdd3; border-radius: 8px 0 8px 8px; padding: 3px; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13); }
+  .still { aspect-ratio: 4 / 5; border-radius: 6px; background: radial-gradient(120% 80% at 50% 30%, #2a0f08, #120604); color: #f3ece0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 10px 22%; text-align: center; position: relative; }
+  .still small { font-size: 10px; opacity: 0.85; }
+  .still strong { font: 700 19px/1.15 var(--serif); overflow-wrap: anywhere; }
+  .still i { position: absolute; left: 7px; bottom: 5px; font-style: normal; font-size: 11px; }
+  .bubble p { margin: 0; padding: 6px 6px 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .bubble .url { color: #027eb5; }
+  .bubble .meta { text-align: right; color: #667781; font-size: 11px; padding: 0 6px 2px; }
+
+  /* side */
+  aside { display: grid; gap: 16px; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 16px 12px; }
+  .box h2 { font-size: 0.95rem; margin: 0 0 10px; color: var(--dim); font-weight: 650; display: flex; justify-content: space-between; align-items: baseline; }
+  .box h2 small { color: var(--faint); font-weight: 400; }
+  .now { font-size: 0.95rem; color: var(--dim); }
+  .now b { color: var(--ink); }
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  ul.items li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 9px 0; border-top: 1px solid var(--line); align-items: center; }
+  ul.items li:first-child { border-top: 0; }
+  .it-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .it-sub { grid-column: 1 / -1; color: var(--faint); font-size: 0.82rem; overflow-wrap: anywhere; }
+  .it-sub a { color: var(--info); }
+  .chip { font-size: 0.78rem; font-weight: 650; padding: 3px 9px; border-radius: 999px; white-space: nowrap; box-shadow: inset 0 0 0 1.2px currentColor; }
+  .chip.sent { color: var(--ok); } .chip.queued, .chip.working { color: var(--gold); } .chip.failed { color: var(--bad); }
+  .chip.nowa, .chip.video { color: var(--info); } .chip.skipped { color: var(--faint); }
+  .empty { color: var(--faint); font-size: 0.9rem; padding: 4px 0 8px; }
+  details summary { cursor: pointer; color: var(--dim); font-size: 0.9rem; }
+  pre.log { white-space: pre-wrap; font: 12px/1.45 ui-monospace, Menlo, monospace; color: var(--dim); max-height: 260px; overflow: auto; margin: 10px 0 0; }
+  .foot { color: var(--faint); font-size: 0.82rem; margin-top: 18px; overflow-wrap: anywhere; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 10px); background: var(--ink); color: #1c0a06; padding: 10px 18px; border-radius: 999px; font-weight: 600; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 9; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .banner { margin-top: 14px; padding: 12px 16px; border-radius: 14px; background: rgba(242, 179, 91, 0.12); color: var(--warn); font-weight: 600; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .sender { display: inline-flex; align-items: center; gap: 8px; color: var(--dim); font-size: 0.92rem; }
+  .sender input { width: 13rem; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 14px; font-weight: 600; color: var(--ink); }
+  .sender input:focus { border-color: var(--gold); outline: none; }
+  .sender input.empty { border-color: var(--warn); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Send desk</h1>
+    <label class="sender">
+      <span>Sending as</span>
+      <input id="sender-name" maxlength="40" autocomplete="name" placeholder="Your name" spellcheck="false" />
+    </label>
+    <div class="counts" id="counts" aria-live="polite"></div>
+    <span class="pill off" id="wa">Starting…</span>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="grid">
+    <main>
+      <section class="card" id="card" aria-live="polite"></section>
+      <p class="foot" id="foot"></p>
+    </main>
+    <aside>
+      <section class="box">
+        <h2>Sending <small id="pace"></small></h2>
+        <div class="now" id="now"></div>
+      </section>
+      <section class="box">
+        <h2>Queue <small id="queue-count"></small></h2>
+        <ul class="items" id="queue"></ul>
+      </section>
+      <section class="box">
+        <h2>Done this session <small id="done-count"></small></h2>
+        <ul class="items" id="done"></ul>
+      </section>
+      <section class="box">
+        <h2>For your groups</h2>
+        <p class="now" style="margin:0 0 10px">Post a video in a WhatsApp group with this message. Make the group's video on the site (e.g. for “the Pippara family”) and save it, or reuse any video link from the list.</p>
+        <textarea id="group-msg" rows="6" aria-label="Message for WhatsApp groups" style="width:100%;background:var(--bg);border:1px solid var(--line-strong);border-radius:12px;padding:10px 12px;resize:vertical;font-size:.9rem"></textarea>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn small primary" id="copy-group" type="button">Copy message</button>
+          <a class="btn small quiet" id="open-site" target="_blank" rel="noopener">Make a group video</a>
+        </div>
+      </section>
+      <section class="box">
+        <details>
+          <summary>Sender log</summary>
+          <pre class="log" id="log"></pre>
+        </details>
+      </section>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/*BOOT*/
+const D = window.DESK;
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") n.className = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) n.append(kid.nodeType ? kid : String(kid));
+  return n;
+};
+const fill = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+// Same as shared/links.ts: every link we send says the channel and who sent it.
+const slug = (n) => (n || "").normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+function tracked(url, source, sender) {
+  const u = new URL(url);
+  u.searchParams.set("utm_source", source);
+  if (slug(sender)) u.searchParams.set("utm_sender", slug(sender));
+  return u.toString();
+}
+const personalCaption = (name, from) => fill(D.caption, { name: name || "{name}", site: tracked(D.site, "whatsapp_direct", from) });
+const LIMITS = { name: 40, wish: 180, from: 40 };
+
+// "Sending as": the default "From" for everyone, set in the header and kept in this browser.
+// It starts from --from when the desk was launched with one.
+const SENDER_KEY = "diwali-desk-sender:" + D.sheet;
+let sender = D.from;
+try { const saved = localStorage.getItem(SENDER_KEY); if (saved !== null) sender = saved; } catch {}
+const senderName = () => sender.trim();
+
+// What this browser decided, so "Done this session" survives a reload.
+const SESSION_KEY = "diwali-desk-session:" + D.sheet;
+let session = [];
+try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || "[]"); } catch {}
+const remember = (ref) => { session = [ref, ...session.filter((r) => r !== ref)].slice(0, 200); try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {} };
+
+let contacts = [];
+let bot = { running: false, status: null, log: [] };
+let currentRef = null;
+let mode = "decide"; // or "compose"
+let draft = null;
+const history = [];
+let busy = false;
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200);
+}
+
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: body ? "POST" : "GET",
+    headers: { "x-desk-token": D.token, ...(body ? { "content-type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Something went wrong.");
+  return data;
+}
+
+const byRef = (ref) => contacts.find((c) => c.ref === ref);
+const undecided = () => contacts.filter((c) => c.status === "");
+function nextUndecided(afterLine = 0) {
+  const list = undecided();
+  return (list.find((c) => c.line > afterLine) || list[0] || null)?.ref ?? null;
+}
+const displayPhone = (c) => c.phone || "";
+
+const STATUS = {
+  "": ["", ""], ready: ["queued", "Queued"], working: ["working", "Working"], sent: ["sent", "Sent"], skipped: ["skipped", "Skipped"],
+  failed: ["failed", "Failed"], "not on whatsapp": ["nowa", "Not on WhatsApp"], "video ready": ["video", "Video only"],
+};
+const STEP = { creating: "Creating the greeting", video: "Making the video", uploading: "Uploading the video", waiting: "Waiting its turn", sending: "Sending on WhatsApp" };
+
+// ---------------------------------------------------------------- the card
+function renderCard() {
+  const card = $("card");
+  card.replaceChildren();
+  const c = byRef(currentRef);
+  if (!c) {
+    card.append(
+      el("div", { class: "eyebrow" }, "All caught up"),
+      el("p", { class: "who" }, undecided().length ? "Pick someone" : "Everyone has been decided."),
+      el("p", { class: "suggest" }, "Use Find to open any contact again."),
+      navBar(),
+    );
+    return;
+  }
+  if (mode === "compose" && draft?.ref === c.ref) return renderCompose(card, c);
+
+  const pos = contacts.indexOf(c) + 1;
+  const left = undecided().length;
+  card.append(
+    el("div", { class: "eyebrow" }, el("span", {}, `Contact ${pos} of ${contacts.length}`), el("span", {}, `${left} left to decide`)),
+    el("p", { class: "who" }, c.internal || c.name || "(no saved name)"),
+    el("p", { class: "phone" + (c.phoneOk ? "" : " problem") }, c.phoneOk ? displayPhone(c) : c.phone ? `${c.phone}: ${c.phoneProblem.replace(/^".*?" /, "")}. You'd get a video link to share yourself.` : "No phone number. You'd get a video link to share yourself."),
+  );
+  if (c.name) card.append(el("p", { class: "suggest" }, "The video will greet them as ", el("b", {}, c.name), "."));
+
+  const [, label] = STATUS[c.status] || ["", c.status];
+  if (c.status === "") {
+    card.append(el("div", { class: "actions" },
+      el("button", { class: "btn quiet", onclick: () => skip(c) }, "Skip ", el("kbd", {}, "K")),
+      el("button", { class: "btn primary grow", onclick: () => startCompose(c) }, "Send… ", el("kbd", {}, "S")),
+    ));
+  } else {
+    const state = el("div", { class: "state" }, el("b", {}, label), c.sent_at ? ` on ${c.sent_at}` : "", c.note ? ` · ${c.note}` : "");
+    if (c.video_link) state.append(" · ", el("a", { href: c.video_link, target: "_blank", rel: "noopener", style: "color:var(--info)" }, "video"));
+    card.append(state);
+    const acts = el("div", { class: "actions" });
+    if (c.status === "skipped") acts.append(el("button", { class: "btn quiet", onclick: () => act(c, "unskip", "Back in the list") }, "Undo skip"), el("button", { class: "btn primary", onclick: () => startCompose(c) }, "Send… ", el("kbd", {}, "S")));
+    if (c.status === "ready" && bot.status?.current?.ref !== c.ref) acts.append(el("button", { class: "btn quiet", onclick: () => act(c, "cancel", "Taken out of the queue") }, "Take out of queue"));
+    if (["failed", "not on whatsapp", "video ready"].includes(c.status) && c.phoneOk && D.send) acts.append(el("button", { class: "btn primary", onclick: () => startCompose(c) }, "Try again… ", el("kbd", {}, "S")));
+    if (c.video_link && c.status !== "sent") acts.append(el("button", { class: "btn quiet", onclick: () => copyWithLink(c) }, "Copy message + video link"));
+    acts.append(el("button", { class: "btn quiet", onclick: () => goNext() }, "Next to decide ", el("kbd", {}, "→")));
+    card.append(acts);
+  }
+  card.append(navBar());
+}
+
+function navBar() {
+  const input = el("input", { type: "search", placeholder: "Find a contact…", "aria-label": "Find a contact", autocomplete: "off" });
+  const results = el("div", { class: "results", hidden: true });
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    results.replaceChildren();
+    if (!q) { results.hidden = true; return; }
+    const digits = q.replace(/\D/g, "");
+    const hits = contacts.filter((c) => (c.internal + " " + c.name).toLowerCase().includes(q) || (digits.length >= 3 && c.phone.replace(/\D/g, "").includes(digits))).slice(0, 8);
+    for (const c of hits) results.append(el("button", { onclick: () => { go(c.ref); } }, el("span", {}, c.internal || c.name), el("small", {}, (STATUS[c.status] || ["", c.status])[1] || "to decide")));
+    if (!hits.length) results.append(el("div", { class: "empty", style: "padding:8px 10px" }, "No match."));
+    results.hidden = false;
+  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Escape") { input.value = ""; results.hidden = true; } if (e.key === "Enter") results.querySelector("button")?.click(); });
+  return el("div", { class: "nav" },
+    el("button", { class: "link", onclick: back, disabled: !history.length }, "← Back"),
+    el("div", { class: "search" }, input, results),
+  );
+}
+
+function startCompose(c) {
+  const name = c.name || "";
+  const tpl = D.caption;
+  draft = {
+    ref: c.ref, name, wish: c.wish || D.wish, from: c.from || senderName(),
+    caption: c.caption || personalCaption(name, c.from || senderName()),
+    captionEdited: Boolean(c.caption), wishIndex: Math.max(0, D.wishes.indexOf(c.wish || D.wish)), error: "",
+  };
+  mode = "compose";
+  renderCard();
+  const first = $("f-name");
+  first?.focus(); first?.select();
+}
+
+function renderCompose(card, c) {
+  const counter = (v, max) => el("small", { class: v.length > max ? "over" : "" }, `${v.length}/${max}`);
+  const nameIn = el("input", { id: "f-name", value: draft.name, maxlength: 60, autocomplete: "off", spellcheck: "false" });
+  const wishIn = el("textarea", { id: "f-wish", rows: 3, maxlength: 240 }, draft.wish);
+  const fromIn = el("input", { id: "f-from", value: draft.from, maxlength: 60, placeholder: "Your name (optional)", autocomplete: "off" });
+  const capIn = el("textarea", { id: "f-cap", rows: 6 }, draft.caption);
+  const nameCount = counter(draft.name, LIMITS.name), wishCount = counter(draft.wish, LIMITS.wish), fromCount = counter(draft.from, LIMITS.from);
+  const err = el("p", { class: "error", role: "alert" }, draft.error || "");
+
+  const stillName = el("strong", {}, draft.name || "…");
+  const capText = el("p");
+  const paintCaption = () => {
+    capText.replaceChildren();
+    for (const part of draft.caption.split(/(https?:\/\/\S+)/)) capText.append(/^https?:\/\//.test(part) ? el("span", { class: "url" }, part) : part);
+  };
+  paintCaption();
+
+  const update = () => {
+    draft.name = nameIn.value; draft.wish = wishIn.value; draft.from = fromIn.value;
+    if (!draft.captionEdited) { draft.caption = personalCaption(draft.name.trim(), draft.from.trim()); capIn.value = draft.caption; }
+    stillName.textContent = draft.name.trim() || "…";
+    paintCaption();
+  };
+  // Counters update in place.
+  const live = (input, key, max, holder) => input.addEventListener("input", () => {
+    update();
+    holder.textContent = `${input.value.length}/${max}`;
+    holder.className = input.value.length > max ? "over" : "";
+  });
+  live(nameIn, "name", LIMITS.name, nameCount);
+  live(wishIn, "wish", LIMITS.wish, wishCount);
+  live(fromIn, "from", LIMITS.from, fromCount);
+  capIn.addEventListener("input", () => { draft.caption = capIn.value; draft.captionEdited = true; paintCaption(); });
+
+  const anotherWish = () => {
+    draft.wishIndex = (draft.wishIndex + 1) % D.wishes.length;
+    wishIn.value = D.wishes[draft.wishIndex];
+    wishIn.dispatchEvent(new Event("input"));
+  };
+  const resetCaption = () => { draft.captionEdited = false; update(); };
+
+  const sendBtn = el("button", { class: "btn primary grow", id: "send-btn", onclick: () => confirmSend(c) }, c.phoneOk ? "Send on WhatsApp " : "Make the video ", el("kbd", {}, "⌘↵"));
+  card.append(
+    el("div", { class: "eyebrow" }, el("span", {}, c.internal || "(no saved name)"), el("span", {}, c.phoneOk ? displayPhone(c) : "No WhatsApp number: you'll get a video link")),
+    el("div", { class: "compose" },
+      el("div", {},
+        el("div", { class: "field" }, el("label", { for: "f-name" }, "Name in the video", nameCount), nameIn,
+          el("div", { class: "hint" }, el("span", {}, "How the film greets them, e.g. “Hari annaya”."))),
+        el("div", { class: "field" }, el("label", { for: "f-wish" }, "Wish", wishCount), wishIn,
+          el("div", { class: "hint" }, el("span", {}, "Shown in the film under their name."), el("button", { class: "link", type: "button", onclick: anotherWish }, "Another wish"))),
+        el("div", { class: "field" }, el("label", { for: "f-from" }, "From", fromCount), fromIn,
+          el("div", { class: "hint" }, el("span", {}, "Shown as “With love, …”. Leave empty to leave it out."))),
+        el("div", { class: "field" }, el("label", { for: "f-cap" }, "WhatsApp message", el("small", {}, "sent with the video")), capIn,
+          el("div", { class: "hint" }, el("span", {}, ""), el("button", { class: "link", type: "button", onclick: resetCaption }, "Reset message"))),
+        err,
+      ),
+      el("div", { class: "phone-mock", "aria-label": "Preview of the WhatsApp message" },
+        el("div", { class: "mock-title" }, "What they’ll get"),
+        el("div", { class: "bubble" },
+          el("div", { class: "still" }, el("small", {}, "A Diwali greeting for"), stillName, el("i", {}, "▶ 0:14")),
+          capText,
+          el("div", { class: "meta" }, "now ✓✓"),
+        ),
+      ),
+    ),
+    el("div", { class: "actions" },
+      el("button", { class: "btn quiet", onclick: () => { mode = "decide"; draft = null; renderCard(); } }, "Back ", el("kbd", {}, "Esc")),
+      sendBtn,
+    ),
+  );
+}
+
+async function confirmSend(c) {
+  if (busy) return;
+  const name = draft.name.trim(), wish = draft.wish.trim(), from = draft.from.trim(), caption = draft.caption.trim();
+  const problem = !name ? "Fill in the name in the video." : name.length > LIMITS.name ? `The name is over ${LIMITS.name} characters.` : !wish ? "Fill in a wish." : wish.length > LIMITS.wish ? `The wish is over ${LIMITS.wish} characters.` : from.length > LIMITS.from ? `“From” is over ${LIMITS.from} characters.` : !caption ? "The WhatsApp message is empty." : /\{name\}/.test(caption) ? "The message still says {name}: fill in the name." : "";
+  if (problem) { draft.error = problem; renderCard(); return; }
+  busy = true;
+  try {
+    await api("/api/decide", { ref: c.ref, action: "send", name, wish, from, caption });
+    remember(c.ref);
+    toast(c.phoneOk ? `Queued: ${name}` : `Making ${name}'s video`);
+    mode = "decide"; draft = null;
+    await refresh();
+    goNext(c.line);
+  } catch (e) {
+    draft.error = e.message; renderCard();
+  } finally { busy = false; }
+}
+
+async function skip(c) {
+  if (busy) return;
+  busy = true;
+  try {
+    await api("/api/decide", { ref: c.ref, action: "skip" });
+    remember(c.ref);
+    toast(`Skipped ${c.internal || c.name}`);
+    await refresh();
+    goNext(c.line);
+  } catch (e) { toast(e.message); } finally { busy = false; }
+}
+
+// For people the bot couldn't reach: the same message, with the video's link to paste anywhere.
+async function copyWithLink(c) {
+  const text = `${c.caption || personalCaption(c.name, c.from || senderName())}\n\nYour video: ${c.video_link}`;
+  try { await navigator.clipboard.writeText(text); toast("Message and video link copied"); } catch { toast("Couldn't copy"); }
+}
+
+async function act(c, action, msg) {
+  try { await api("/api/decide", { ref: c.ref, action }); toast(msg); await refresh(); renderCard(); } catch (e) { toast(e.message); }
+}
+
+function go(ref) {
+  if (currentRef && currentRef !== ref) history.push(currentRef);
+  currentRef = ref; mode = "decide"; draft = null; renderCard();
+}
+function goNext(afterLine) {
+  const c = byRef(currentRef);
+  const ref = nextUndecided(afterLine ?? c?.line ?? 0);
+  if (currentRef) history.push(currentRef);
+  currentRef = ref; mode = "decide"; draft = null; renderCard();
+}
+function back() {
+  const ref = history.pop();
+  if (!ref) return;
+  currentRef = ref; mode = "decide"; draft = null; renderCard();
+}
+
+// ---------------------------------------------------------------- side panel
+function chipFor(c) {
+  const working = bot.status?.current?.ref === c.ref;
+  const making = bot.status?.preparing?.ref === c.ref;
+  const [cls, label] = working
+    ? ["working", STEP[bot.status.current.step] || "Working"]
+    : making
+      ? ["working", "Making the video"]
+      : c.status === "ready" && c.video_link
+        ? ["queued", "Video ready"]
+        : STATUS[c.status] || ["", c.status];
+  return el("span", { class: "chip " + cls }, label);
+}
+
+function renderSide() {
+  const s = bot.status;
+  // WhatsApp state
+  const wa = $("wa");
+  let waText = "Starting…", waCls = "off";
+  if (!D.send) { waText = "Videos only (no WhatsApp)"; waCls = "off"; }
+  else if (!bot.running) { waText = "Sender stopped"; waCls = "bad"; }
+  else if (s?.whatsapp === "in") { waText = "WhatsApp signed in"; waCls = "ok"; }
+  else if (s?.whatsapp === "scan") { waText = "Scan the QR code in the WhatsApp window"; waCls = "warn"; }
+  else if (s?.whatsapp === "opening") { waText = "Opening WhatsApp Web…"; waCls = "off"; }
+  wa.textContent = waText; wa.className = "pill " + waCls;
+
+  const banner = $("banner");
+  if (D.send && s?.whatsapp === "scan") {
+    banner.replaceChildren(el("span", {}, "WhatsApp needs you: scan the QR code in the Chrome window that opened (WhatsApp on your phone → Settings → Linked devices → Link a device)."));
+    banner.hidden = false;
+  } else if (!bot.running) {
+    banner.replaceChildren(el("span", {}, "The sender has stopped, so nothing is being sent. Check the sender log, then restart it."), el("button", { class: "btn small primary", onclick: () => api("/api/restart", {}).then(refresh).catch((e) => toast(e.message)) }, "Restart sender"));
+    banner.hidden = false;
+  } else banner.hidden = true;
+
+  // counts
+  const n = (f) => contacts.filter(f).length;
+  const counts = [
+    ["to decide", n((c) => c.status === "")], ["queued", n((c) => c.status === "ready" || c.status === "working")], ["sent", n((c) => c.status === "sent")],
+    ["video only", n((c) => c.status === "video ready")], ["skipped", n((c) => c.status === "skipped")], ["need a look", n((c) => ["failed", "not on whatsapp"].includes(c.status))],
+  ];
+  $("counts").replaceChildren(...counts.map(([k, v]) => el("span", {}, el("b", {}, v), " " + k)));
+  if (s) $("pace").textContent = s.dailyLimit > 0 ? `${s.sentToday} of ${s.dailyLimit} today` : `${s.sentToday} sent today`;
+
+  // now
+  const now = $("now");
+  now.replaceChildren();
+  const cur = s?.current && byRef(s.current.ref);
+  const wait = s?.nextSendAt ? Math.round((s.nextSendAt - Date.now()) / 1000) : 0;
+  if (cur) now.append(el("b", {}, cur.name || cur.internal), `: ${(STEP[s.current.step] || "working").toLowerCase()}…`);
+  else if (n((c) => c.status === "ready")) now.append(wait > 0 ? (s?.onBreak ? `Taking a 2-minute break after ${s.batch} sends: next one in about ${wait} s.` : `Next send in about ${wait} s.`) : "Starting the next one…");
+  else now.append("Nothing waiting. Send someone and it starts here.");
+  if (cur && s.current.step === "waiting" && wait > 0) now.append(el("div", { style: "color:var(--faint);font-size:.85rem;margin-top:4px" }, s.onBreak ? `A 2-minute break after every ${s.batch} sends; this one goes in about ${wait} s.` : `Sends in about ${wait} s: spaced out so WhatsApp doesn't flag your number.`));
+
+  // videos being made ahead of the sending
+  const prep = s?.preparing && byRef(s.preparing.ref);
+  if (prep) now.append(el("div", { style: "color:var(--faint);font-size:.85rem;margin-top:6px" }, `Making videos ahead: ${prep.name || prep.internal}…`));
+
+  // queue
+  const queue = contacts.filter((c) => c.status === "ready" || c.status === "working");
+  $("queue-count").textContent = queue.length ? `${queue.length}` : "";
+  $("queue").replaceChildren(...(queue.length ? queue.map((c) => el("li", {},
+    el("span", { class: "it-name" }, c.name || c.internal), chipFor(c),
+    el("span", { class: "it-sub" }, [c.internal, c.phoneOk ? displayPhone(c) : "no number"].filter(Boolean).join(" · ")),
+  )) : [el("li", { class: "empty" }, "Empty.")]));
+
+  // done this session
+  const done = session.map(byRef).filter((c) => c && !["", "ready", "working"].includes(c.status));
+  $("done-count").textContent = done.length ? `${done.length}` : "";
+  $("done").replaceChildren(...(done.length ? done.slice(0, 40).map((c) => {
+    const sub = el("span", { class: "it-sub" }, [c.internal, c.sent_at, c.note].filter(Boolean).join(" · "));
+    if (c.video_link) sub.append(" · ", el("a", { href: c.video_link, target: "_blank", rel: "noopener" }, "video"));
+    return el("li", {}, el("button", { class: "link it-name", style: "text-align:left;text-decoration:none;color:var(--ink)", onclick: () => go(c.ref) }, c.name || c.internal), chipFor(c), sub);
+  }) : [el("li", { class: "empty" }, "Nothing yet.")]));
+
+  const log = $("log");
+  const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 8;
+  log.textContent = bot.log.join("\n");
+  if (atBottom) log.scrollTop = log.scrollHeight;
+  $("foot").textContent = `Sheet: ${D.sheet} · Record of everything sent: ${D.outDir}/sent-log.csv`;
+}
+
+// ---------------------------------------------------------------- loop
+async function refresh() {
+  const data = await api("/api/state");
+  contacts = data.contacts;
+  bot = data.bot;
+}
+
+async function tick(first) {
+  try {
+    await refresh();
+    if (first || (!currentRef && mode === "decide")) { currentRef = nextUndecided(0); renderCard(); }
+    else if (mode === "decide" && !document.activeElement?.closest?.(".search")) renderCard();
+    renderSide();
+  } catch (e) {
+    $("wa").textContent = "Desk not reachable"; $("wa").className = "pill bad";
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  const typing = e.target.closest("input, textarea");
+  const c = byRef(currentRef);
+  if (mode === "compose") {
+    if (e.key === "Escape") { mode = "decide"; draft = null; renderCard(); }
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && c) { e.preventDefault(); confirmSend(c); }
+    return;
+  }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey || !c) return;
+  if (e.key === "s" || e.key === "S") { if (c.status === "" || c.status === "skipped" || (["failed", "not on whatsapp", "video ready"].includes(c.status) && c.phoneOk && D.send)) { e.preventDefault(); startCompose(c); } }
+  else if (e.key === "k" || e.key === "K") { if (c.status === "") skip(c); }
+  else if (e.key === "ArrowRight") goNext();
+  else if (e.key === "ArrowLeft") back();
+});
+
+// The group message: the same words as the personal caption, addressed to everyone.
+const GROUP_KEY = "diwali-desk-group-msg";
+const groupDefaultFor = (who) => `Happy Diwali, everyone! 🪔\nI made this little Diwali film for all of you. Watch it, enjoy it, share it as your Status and post it on Instagram.\n\nMake one for your own family and friends, free: ${tracked(D.site, "whatsapp_group", who)}`;
+const groupMsg = $("group-msg");
+try { groupMsg.value = localStorage.getItem(GROUP_KEY) || groupDefaultFor(senderName()); } catch { groupMsg.value = groupDefaultFor(senderName()); }
+if (!groupMsg.value.includes("utm_sender") && senderName()) groupMsg.value = groupDefaultFor(senderName()); // an older saved copy without the tag
+groupMsg.addEventListener("input", () => { try { localStorage.setItem(GROUP_KEY, groupMsg.value); } catch {} });
+
+// Changing "Sending as" updates whatever still uses the old name: an open editor's
+// untouched "From" (and its message), and the group message if it wasn't edited.
+const senderInput = $("sender-name");
+senderInput.value = sender;
+const markEmpty = () => { senderInput.classList.toggle("empty", !senderName()); senderInput.title = senderName() ? "" : "Add your name: the videos say “With love, …” and links credit you."; };
+markEmpty();
+senderInput.addEventListener("input", () => {
+  const before = senderName();
+  sender = senderInput.value;
+  try { localStorage.setItem(SENDER_KEY, sender); } catch {}
+  markEmpty();
+  if (groupMsg.value === groupDefaultFor(before)) { groupMsg.value = groupDefaultFor(senderName()); try { localStorage.setItem(GROUP_KEY, groupMsg.value); } catch {} }
+  if (mode === "compose" && draft && draft.from.trim() === before) {
+    draft.from = senderName();
+    const f = $("f-from");
+    if (f) { f.value = draft.from; f.dispatchEvent(new Event("input")); }
+  }
+});
+$("open-site").href = D.site;
+$("copy-group").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(groupMsg.value); toast("Group message copied"); }
+  catch { groupMsg.select(); document.execCommand("copy"); toast("Group message copied"); }
+});
+
+tick(true);
+setInterval(() => tick(false), 2000);
+</script>
+</body>
+</html>

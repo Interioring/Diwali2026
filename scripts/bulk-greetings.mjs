@@ -27,6 +27,8 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { validateGreetingInput, LIMITS } from "../shared/greeting.ts";
+import { parseCsv, findColumns, normalizePhone, createGreeting } from "./lib/contacts.mjs";
+import { trackedUrl } from "../shared/links.ts";
 import { CURATED_WISHES } from "../shared/wishes.ts";
 
 const DEFAULT_MESSAGE = "Happy Diwali, {name}! ✨\nI made a little Diwali greeting just for you: {link}";
@@ -56,69 +58,11 @@ See scripts/contacts.example.csv.`);
   process.exit(code);
 }
 
-// --- CSV -------------------------------------------------------------------
-function parseCsv(text) {
-  text = text.replace(/^﻿/, "");
-  const firstLine = text.slice(0, text.search(/\r?\n|$/));
-  const delim = [",", ";", "\t"].map((d) => [d, firstLine.split(d).length]).sort((x, y) => y[1] - x[1])[0][0];
-  const rows = [];
-  let row = [];
-  let field = "";
-  let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (quoted) {
-      if (ch === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (ch === '"') quoted = false;
-      else field += ch;
-    } else if (ch === '"') quoted = true;
-    else if (ch === delim) {
-      row.push(field);
-      field = "";
-    } else if (ch === "\n" || ch === "\r") {
-      if (ch === "\r" && text[i + 1] === "\n") i++;
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-    } else field += ch;
-  }
-  if (field !== "" || row.length) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows.filter((r) => r.some((c) => c.trim() !== ""));
-}
-
-const HEADERS = {
-  name: ["name", "recipient", "recipient name", "their name", "to"],
-  phone: ["phone", "mobile", "number", "whatsapp", "phone number", "mobile number", "whatsapp number"],
-  wish: ["wish", "message", "greeting"],
-  from: ["from", "sender", "your name", "signed"],
-};
-
-function normalizePhone(raw, cc) {
-  const text = String(raw ?? "").trim();
-  if (!text) return { phone: "", problem: "no phone number" };
-  if (/e\+?\d/i.test(text)) return { phone: "", problem: `"${text}" was mangled by the spreadsheet (format the column as text)` };
-  const international = text.startsWith("+") || text.startsWith("00");
-  let digits = text.replace(/^00/, "").replace(/\D/g, "");
-  if (!international) {
-    if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
-    if (digits.length === 10) digits = cc + digits;
-  }
-  if (digits.length < 11 || digits.length > 15) return { phone: "", problem: `"${text}" doesn't look like a WhatsApp number` };
-  return { phone: digits, problem: "" };
-}
-
 const csvFile = resolve(csvPath);
 if (!existsSync(csvFile)) usage(1, `Can't find ${csvFile}`);
-const table = parseCsv(readFileSync(csvFile, "utf8"));
+const table = parseCsv(readFileSync(csvFile, "utf8")).rows;
 if (table.length < 2) usage(1, "The CSV needs a header row and at least one person.");
-const header = table[0].map((h) => h.trim().toLowerCase());
-const col = Object.fromEntries(Object.entries(HEADERS).map(([k, names]) => [k, header.findIndex((h) => names.includes(h))]));
+const col = findColumns(table[0]);
 if (col.name < 0) usage(1, `No "name" column. The header row has: ${table[0].join(", ")}`);
 
 // --- check every row before creating anything --------------------------------
@@ -161,32 +105,13 @@ mkdirSync(outDir, { recursive: true });
 const statePath = join(outDir, "greetings.json");
 const state = existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) : {};
 const keyOf = (p) => [p.recipientName, p.phone, p.message, p.senderName ?? ""].join("|");
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function create(p) {
-  const body = JSON.stringify({ recipientName: p.recipientName, message: p.message, style: p.style, seed: p.seed, ...(p.senderName ? { senderName: p.senderName } : {}) });
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const res = await fetch(`${opts.base}/api/greetings`, { method: "POST", headers: { "content-type": "application/json" }, body });
-    if (res.status === 201) return (await res.json()).id;
-    if (res.status === 429) {
-      // The site allows 12 new greetings a minute from one connection.
-      process.stdout.write("   (pausing a minute: the site allows 12 greetings a minute)\n");
-      await sleep(61_000);
-      continue;
-    }
-    const detail = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${detail.slice(0, 200)}`);
-  }
-  throw new Error("still rate-limited after several minutes");
-}
-
 console.log(`\nMaking ${people.length} greetings on ${opts.base}\n`);
 let made = 0;
 for (const [i, p] of people.entries()) {
   const key = keyOf(p);
   if (!state[key]) {
     try {
-      state[key] = { id: await create(p) };
+      state[key] = { id: await createGreeting(opts.base, p, { onWait: () => process.stdout.write("   (pausing a minute: the site allows 12 greetings a minute)\n") }) };
       made++;
       writeFileSync(statePath, JSON.stringify(state, null, 2));
     } catch (err) {
@@ -194,7 +119,7 @@ for (const [i, p] of people.entries()) {
       process.exit(1);
     }
   }
-  p.link = `${opts.base}/g/${state[key].id}`;
+  p.link = trackedUrl(`${opts.base}/g/${state[key].id}`, "whatsapp_direct", p.senderName);
   p.text = opts.message.replaceAll("{name}", p.recipientName).replaceAll("{link}", p.link).replaceAll("{from}", p.senderName ?? "");
   console.log(`  ${String(i + 1).padStart(3)}/${people.length}  ${p.recipientName.padEnd(24)} ${p.link}`);
 }

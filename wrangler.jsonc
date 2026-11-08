@@ -10,7 +10,7 @@
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/g/*"]
+    "run_worker_first": ["/api/*", "/g/*", "/v/*", "/stats"]
   },
   "d1_databases": [
     {
@@ -20,7 +20,13 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Greeting videos made by scripts/greeting-bot.mjs, served at /v/<id>.mp4 while the greeting is live.
+  // A lifecycle rule on the bucket deletes each one after 46 days.
+  "r2_buckets": [{ "binding": "VIDEOS", "bucket_name": "diwali2026-videos" }],
   "ratelimits": [
-    { "name": "RL_GREETINGS", "namespace_id": "2026001", "simple": { "limit": 12, "period": 60 } }
+    { "name": "RL_GREETINGS", "namespace_id": "2026001", "simple": { "limit": 12, "period": 60 } },
+    // Page-view beacons per IP. Generous: Indian mobile networks put many people behind one IP.
+    { "name": "RL_VISITS", "namespace_id": "2026002", "simple": { "limit": 120, "period": 60 } },
+    { "name": "RL_FEEDBACK", "namespace_id": "2026003", "simple": { "limit": 6, "period": 60 } }
   ]
 }

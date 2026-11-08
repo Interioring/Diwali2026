@@ -1,4 +1,7 @@
-import { ID_PATTERN, isWishStyle, validateGreetingInput, type Greeting } from "../shared/greeting.ts";
+import { ID_PATTERN, isWishStyle, validateGreetingInput, videoFilename, type Greeting } from "../shared/greeting.ts";
+import { parseAgent } from "../shared/agent.ts";
+import { authorised, istDay, recordVisit, saveFeedback, stats } from "./analytics.ts";
+import statsPage from "./stats.html?raw";
 
 interface RateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -8,6 +11,12 @@ export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   RL_GREETINGS?: RateLimiter;
+  /** Videos uploaded by scripts/greeting-bot.mjs, one per greeting: `<id>.mp4`. */
+  VIDEOS?: R2Bucket;
+  RL_VISITS?: RateLimiter;
+  RL_FEEDBACK?: RateLimiter;
+  /** Unlocks /stats (a Worker secret: `wrangler secret put STATS_KEY`). */
+  STATS_KEY?: string;
 }
 
 const RETENTION_MS = 45 * 24 * 60 * 60 * 1000; // greetings live 45 days
@@ -28,6 +37,8 @@ const EVENTS = new Set([
   "share_copy",
   "share_video",
   "download_video",
+  "feedback_sent",
+  "share_post_message",
 ]);
 
 function json(data: unknown, status = 200, extra: HeadersInit = {}): Response {
@@ -73,9 +84,8 @@ export function newId(): string {
   return out;
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+// India time, like the visit log, so a Diwali evening stays on one date.
+const today = () => istDay();
 
 async function getGreeting(env: Env, id: string): Promise<Greeting | null> {
   if (!ID_PATTERN.test(id)) return null;
@@ -125,6 +135,8 @@ async function reportGreeting(env: Env, id: string): Promise<Response> {
 }
 
 async function trackEvent(request: Request, env: Env): Promise<Response> {
+  // Automated browsers (crawlers, the greeting bot's video maker) aren't people using the site.
+  if (parseAgent(request.headers.get("user-agent") ?? "").automated) return new Response(null, { status: 204 });
   try {
     const body = (await readJson(request, 256)) as { name?: unknown };
     if (typeof body.name === "string" && EVENTS.has(body.name)) {
@@ -188,6 +200,60 @@ async function greetingPage(request: Request, env: Env, id: string): Promise<Res
   return new Response(rewritten.body, { status: 200, headers });
 }
 
+const videoGone = () =>
+  new Response("This greeting is no longer available.", {
+    status: 404,
+    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+  });
+
+/**
+ * GET /v/<id>.mp4: the greeting's video, streamed from R2 with byte ranges so
+ * phones can seek. It follows the greeting: once that expires or is reported,
+ * the link stops working too. `?download` asks the browser to save it.
+ */
+async function serveVideo(request: Request, env: Env, id: string): Promise<Response> {
+  if (!env.VIDEOS) return videoGone();
+  const greeting = await getGreeting(env, id);
+  if (!greeting) return videoGone();
+  const key = `${id}.mp4`;
+  const filename = videoFilename(greeting.recipientName);
+  const headers = new Headers({
+    "content-type": "video/mp4",
+    "accept-ranges": "bytes",
+    "cache-control": "public, max-age=3600",
+    "x-robots-tag": "noindex",
+    "content-disposition": `${new URL(request.url).searchParams.has("download") ? "attachment" : "inline"}; filename="${filename}"`,
+  });
+  if (request.method === "HEAD") {
+    const head = await env.VIDEOS.head(key);
+    if (!head) return videoGone();
+    headers.set("etag", head.httpEtag);
+    headers.set("content-length", String(head.size));
+    return new Response(null, { headers });
+  }
+  let object: R2Object | R2ObjectBody | null;
+  try {
+    object = await env.VIDEOS.get(key, { range: request.headers, onlyIf: request.headers });
+  } catch {
+    const head = await env.VIDEOS.head(key);
+    return new Response(null, { status: 416, headers: { "content-range": `bytes */${head?.size ?? 0}` } });
+  }
+  if (!object) return videoGone();
+  headers.set("etag", object.httpEtag);
+  if (!("body" in object)) return new Response(null, { status: request.headers.has("if-none-match") ? 304 : 412, headers });
+  const range = request.headers.has("range") ? object.range : undefined;
+  if (range) {
+    const size = object.size;
+    const start = "suffix" in range && range.suffix !== undefined ? size - range.suffix : (range as { offset?: number }).offset ?? 0;
+    const length = "length" in range && range.length !== undefined ? range.length : size - start;
+    headers.set("content-range", `bytes ${start}-${start + length - 1}/${size}`);
+    headers.set("content-length", String(length));
+    return new Response(object.body, { status: 206, headers });
+  }
+  headers.set("content-length", String(object.size));
+  return new Response(object.body, { headers });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -208,7 +274,39 @@ export default {
         return error(405, "Method not allowed.");
       }
       if (pathname === "/api/events" && method === "POST") return await trackEvent(request, env);
+      if (pathname === "/api/visit" && method === "POST") {
+        // Never fails the page: a dropped visit is better than an error.
+        if (await allowed(env.RL_VISITS, request)) await recordVisit(request, env).catch(() => undefined);
+        return new Response(null, { status: 204 });
+      }
+      if (pathname === "/api/feedback" && method === "POST") {
+        if (!(await allowed(env.RL_FEEDBACK, request))) return error(429, "Thanks! Please wait a minute before sending more.");
+        const problem = await saveFeedback(request, env);
+        return problem ? error(400, problem) : json({ ok: true });
+      }
+      if (pathname === "/api/stats" && method === "GET") {
+        const auth = await authorised(request, env);
+        if (auth === "unset") return error(503, "STATS_KEY isn't set.");
+        if (auth === "denied") return error(401, "Wrong key.");
+        return json(await stats(env, Number(url.searchParams.get("days") ?? 30)));
+      }
       if (pathname.startsWith("/api/")) return error(404, "Not found.");
+
+      if (pathname === "/stats" && method === "GET") {
+        return new Response(statsPage, {
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-store",
+            "x-robots-tag": "noindex",
+            "x-frame-options": "DENY",
+            "referrer-policy": "no-referrer",
+          },
+        });
+      }
+
+      const clip = pathname.match(/^\/v\/([A-Za-z0-9]{12})\.mp4$/);
+      if (clip && (method === "GET" || method === "HEAD")) return await serveVideo(request, env, clip[1]);
+      if (pathname.startsWith("/v/")) return videoGone();
 
       const page = pathname.match(/^\/g\/([^/]+)\/?$/);
       if (page && method === "GET") return await greetingPage(request, env, page[1]);

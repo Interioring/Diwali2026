@@ -5,7 +5,7 @@ import { CURATED_WISHES } from "../../shared/wishes.ts";
 import { SceneCanvas } from "../components/SceneCanvas.tsx";
 import { Button, MakerMark, StepNumber } from "../components/ui.tsx";
 import { createGreeting } from "../lib/api.ts";
-import { track } from "../lib/analytics.ts";
+import { recordVisit, track } from "../lib/analytics.ts";
 import { navigate } from "../lib/router.ts";
 import { randomSeed } from "../greeting/random.ts";
 import { rememberMine } from "../lib/mine.ts";
@@ -63,6 +63,7 @@ export function Create({ fromRecipient = false }: { fromRecipient?: boolean }) {
 
   useEffect(() => {
     track(fromRecipient ? "recipient_create_start" : "landing_view", { once: true });
+    recordVisit("home");
   }, [fromRecipient]);
 
   useEffect(() => {
